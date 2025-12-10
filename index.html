@@ -1,13 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <script>
+function dragstartHandler(ev) {
+  ev.dataTransfer.setData("text", ev.target.id);
+}
+
+function dragoverHandler(ev) {
+  ev.preventDefault();
+}
+
+function dropHandler(ev) {
+  ev.preventDefault();
+  const data = ev.dataTransfer.getData("text");
+  ev.target.appendChild(document.getElementById(data));
+}
+</script>
 <title>Page Title</title>
 </head>
+  
 <body>
 
-<h1>This is a Heading</h1>
-<p>This is a paragraph.</p>
-<img src="Screenshot 2025-09-15 124215.png" width="100" height="100">
+<div id="div1" ondrop="dropHandler(event)" ondragover="dragoverHandler(event)"></div>
+
+<img id="img1" src="Screenshot 2025-09-15 124215.png" draggable="true" ondragstart="dragstartHandler(event)" width="336" height="69">
+
 
 
 <button onclick="alert('Hello!')">Click Me</button>
