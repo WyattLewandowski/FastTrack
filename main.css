@@ -1,22 +1,16 @@
-  body{
-      padding: 0;
-      margin: 0;
+#mydiv {
+  position: absolute;
+  z-index: 9;
+  background-color: #f1f1f1;
+  border: 1px solid #d3d3d3;
+  text-align: center;
 }
 
-#container{
-            background-color: #212228;
-            background-image: linear-gradient( #292a30 .lem, transparent .lem),
-              linear-gradient(90deg, #292a30 .lem, transparent .lem);
-              background-size: 4em 4em;
-              height: 100vh;
+#mydivheader {
+  padding: 10px;
+  cursor: move;
+  z-index: 10;
+  background-color: #2196F3;
+  color: #fff;
 }
-#card{
-width: 400px;
-height: 400px;
-background_color: #AFDA9F;
-border-radius: 5px;
-cursur: pointer;
-position: fixed;
 
-
-}
