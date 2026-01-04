@@ -3,7 +3,7 @@
 <head>
   <style>
 
-    
+    <div id="container"></div>
 </style>
   <script>
 function dragstartHandler(ev) {
@@ -33,23 +33,22 @@ function rollDice() {
   d.style.top = y_pos+'px';
 }
 function createAndAddDiv(divnum) {
+  const newDiv = document.createElement("div");
+  newDiv.id = "div-" + divnum;
 
-    const newDiv = document.createElement("div");
-    newDiv.classList.add("myClass");
-    newDiv.id = "div-" + divnum; 
-var s = document.getElementById("div-" + divnum);
-s.style.height = "50";
-s.style.width = "50";
-s.style.padding = "10";
-s.style.border = "3px solid red";
-  
-s.addEventListener("drop", dropHandler);
-s.addEventListener("dragover", dragoverHandler);
-  padding: 10px;
-  border: 1px solid #aaaaaa;
-    const container = document.getElementById("container");
-    container.appendChild(newDiv); 
+  newDiv.style.height = "50px";
+  newDiv.style.width = "50px";
+  newDiv.style.padding = "10px";
+  newDiv.style.border = "3px solid red";
+  newDiv.style.display = "inline-block";
+
+  newDiv.addEventListener("drop", dropHandler);
+  newDiv.addEventListener("dragover", dragoverHandler);
+
+  const container = document.getElementById("container");
+  container.appendChild(newDiv);
 }
+
 
     function makeBoard(){
 createAndAddDiv("1");
