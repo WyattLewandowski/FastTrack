@@ -50,8 +50,10 @@ function createAndAddDiv(divnum) {
 }
   
 function makeBoard(){
-  createAndAddDiv("1");
-  
+  for(let p = 0; p < 10; p++){
+  createAndAddDiv(p);
+    placeDiv("100" + (p * 10), "100" + (p * 10), "div-" + p);
+  }
 }
 
 //    function makeBoard(playerCount){
