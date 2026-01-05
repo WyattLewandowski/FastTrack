@@ -52,7 +52,7 @@ function createAndAddDiv(divnum) {
 function makeBoard(){
   for(let p = 0; p < 10; p++){
   createAndAddDiv(p);
-    placeDiv("100" + (p), "100" + (p), "div-" + p);
+    placeDiv("100" + (p*20), "100", "div-" + p);
   }
 }
 
