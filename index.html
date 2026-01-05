@@ -48,10 +48,12 @@ function createAndAddDiv(divnum) {
   const container = document.getElementById("container");
   container.appendChild(newDiv);
 }
-
+var count = 1;
 function makeBoard(){
-  createAndAddDiv("1");
-  placeDiv("100","100","div-1");
+  createAndAddDiv(count);
+  
+  placeDiv("100","100","div-" + count);
+  count = count + 1;
 }
 
 //    function makeBoard(playerCount){
