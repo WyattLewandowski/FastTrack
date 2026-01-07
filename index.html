@@ -6,6 +6,7 @@
   
 </style>
   <script>
+    //drag and drop stuff start
 function dragstartHandler(ev) {
   ev.dataTransfer.setData("text", ev.target.id);
 }
@@ -19,13 +20,14 @@ function dropHandler(ev) {
   const data = ev.dataTransfer.getData("text");
   ev.target.appendChild(document.getElementById(data));
 }
-    
+    //drag and drop stuff end
+    //dice
 function rollDice() {
       const diceFaces = ["dice one side.png", "dice two side.png", "dice three side.png", "four side dice.png", "dice five side.png", "dice six side.png"];
       const randomIndex = Math.floor(Math.random() * 6);
       document.getElementById("dice").src = diceFaces[randomIndex];
     }
-
+//spaces stuff start
     function placeDiv(x_pos, y_pos, divname) {
   var d = document.getElementById(divname);
   d.style.position = "absolute";
@@ -48,27 +50,30 @@ function createAndAddDiv(divnum) {
   const container = document.getElementById("container");
   container.appendChild(newDiv);
 }
-  
+  function placeDivsInSquare(totalDivs, boxSize = 50, gap = 10) {
+  const cols = Math.ceil(Math.sqrt(totalDivs));
+
+  for (let i = 0; i < totalDivs; i++) {
+    const div = document.getElementById("div-" + i);
+
+    const row = Math.floor(i / cols);
+    const col = i % cols;
+
+    div.style.position = "absolute";
+    div.style.left = (col * (boxSize + gap)) + "px";
+    div.style.top = (row * (boxSize + gap)) + "px";
+  }
+}
 function makeBoard(){
-  for(let p = 0; p < 10; p++){
+  const total = 10;
+  for(let p = 0; p < total; p++){
   createAndAddDiv(p);
     
   }
-
+placeDivsInSquare(total);
 }
 
-//    function makeBoard(playerCount){
-  //    for(let p = playerCount; p >0; p--){
-    //    
-      //    for (let i = 0; i < 7; i++) {
-        //      createAndAddDiv(i);
-          //    placeDiv("100","100","div-" + i);
-  
-          //}
-      //}
-    //}
-
-
+//spaces stuff end
 </script>
 <title>Page Title</title>
 </head>
