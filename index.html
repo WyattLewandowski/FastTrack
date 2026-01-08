@@ -76,16 +76,21 @@ function createAndAddDiv(divnum) {
     div.style.top = (row * (boxSize + gap)) + "px";
   }
 }
-function makeBoard(){
+function makeBoard() {
   const total = 10;
-  for(let p = 0; p < total; p++){
-  createAndAddDiv(p);
-    
+
+  // Clear previous board (important!)
+  const container = document.getElementById("container");
+  container.innerHTML = "";
+
+  for (let p = 0; p < total; p++) {
+    createAndAddDiv(p);
   }
-    requestAnimationFrame(() => {
+
+  // Wait for DOM layout before positioning
+  requestAnimationFrame(() => {
     placeDivsInSquare(total);
   });
-
 }
 
 //spaces stuff end
