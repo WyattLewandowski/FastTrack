@@ -82,7 +82,10 @@ function makeBoard(){
   createAndAddDiv(p);
     
   }
-placeDivsInSquare(total);
+    requestAnimationFrame(() => {
+    placeDivsInSquare(total);
+  });
+
 }
 
 //spaces stuff end
