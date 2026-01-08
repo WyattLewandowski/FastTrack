@@ -79,7 +79,7 @@ function createAndAddDiv(divnum) {
 function makeBoard() {
   const total = 10;
 
-  // Clear previous board (important!)
+  
   const container = document.getElementById("container");
   container.innerHTML = "";
 
@@ -87,10 +87,10 @@ function makeBoard() {
     createAndAddDiv(p);
   }
 
-  // Wait for DOM layout before positioning
-  requestAnimationFrame(() => {
-    placeDivsInSquare(total);
-  });
+  
+  
+    placeDivsInSquare(total,76,10);
+ 
 }
 
 //spaces stuff end
