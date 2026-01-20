@@ -50,11 +50,10 @@ function createAndAddDiv(divnum) {
   const newDiv = document.createElement("div");
   newDiv.id = "div-" + divnum;
 
-  newDiv.style.height = "50px";
   newDiv.style.width = "50px";
-  newDiv.style.padding = "10px";
-  newDiv.style.border = "3px solid red";
-  newDiv.style.display = "inline-block";
+newDiv.style.height = "50px";
+newDiv.style.border = "3px solid red";
+newDiv.style.boxSizing = "border-box";
 
   newDiv.addEventListener("drop", dropHandler);
   newDiv.addEventListener("dragover", dragoverHandler);
