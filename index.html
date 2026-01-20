@@ -76,28 +76,27 @@ function createAndAddDiv(divnum) {
     div.style.top = (row * (boxSize + gap)) + "px";
   }
 }
-    function placeDivsInU(
+ function placeDivsInU(
   totalDivs,
   rotation = 0,
   boxSize = 50,
   gap = 10,
-  bottomCount = 4
+  bottomCount = 4,
+  sideHeight = 3
 ) {
   const step = boxSize + gap;
   const positions = [];
 
-  // --- Base U (opens UP, rotation = 0) ---
   let index = 0;
 
   // Bottom row (left → right)
   for (let i = 0; i < bottomCount && index < totalDivs; i++, index++) {
-    positions.push({ x: i, y: 2 });
+    positions.push({ x: i, y: sideHeight });
   }
 
-  // Right column (bottom → top)
-  const verticalCount = Math.ceil((totalDivs - index) / 2);
-  for (let i = 1; i <= verticalCount && index < totalDivs; i++, index++) {
-    positions.push({ x: bottomCount - 1, y: 2 - i });
+  // Right column (bottom → top, stop BEFORE top)
+  for (let i = 1; i < sideHeight && index < totalDivs; i++, index++) {
+    positions.push({ x: bottomCount - 1, y: sideHeight - i });
   }
 
   // Top row (right → left)
@@ -105,29 +104,22 @@ function createAndAddDiv(divnum) {
     positions.push({ x: i, y: 0 });
   }
 
-  // --- Apply rotation ---
+  // 🔴 NO LEFT COLUMN → stays open
+
+  // Rotate
   const rotated = positions.map(p => rotatePoint(p.x, p.y, rotation));
 
-  // --- Normalize to positive coords ---
+  // Normalize
   const minX = Math.min(...rotated.map(p => p.x));
   const minY = Math.min(...rotated.map(p => p.y));
 
- rotated.forEach((p, i) => {
-  const div = document.getElementById("div-" + i);
-
-  div.style.position = "absolute"; // ← REQUIRED
-  div.style.left = ((p.x - minX) * step) + "px";
-  div.style.top  = ((p.y - minY) * step) + "px";
-});
-}
-function rotatePoint(x, y, r) {
-  switch (r % 4) {
-    case 1: return { x: y, y: -x };   // 90°
-    case 2: return { x: -x, y: -y };  // 180°
-    case 3: return { x: -y, y: x };   // 270°
-    default: return { x, y };         // 0°
-  }
-}
+  rotated.forEach((p, i) => {
+    const div = document.getElementById("div-" + i);
+    div.style.position = "absolute";
+    div.style.left = ((p.x - minX) * step) + "px";
+    div.style.top  = ((p.y - minY) * step) + "px";
+  });
+} 
 
 function makeBoard() {
   const total = 10;
