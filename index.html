@@ -18,6 +18,7 @@
   
 </style>
   <script>
+    let boardCount = 0;
     //drag and drop stuff start
 function dragstartHandler(ev) {
   ev.dataTransfer.setData("text", ev.target.id);
@@ -84,11 +85,10 @@ newDiv.style.boxSizing = "border-box";
   }
 }
 
-function placeDivsInU(totalDivs, rotation = 0, boxSize = 50, gap = 10) {
+function placeDivsInU(totalDivs, rotation = 0, boxSize = 50, gap = 10, offsetX = 0) {
   const step = boxSize + gap;
   const positions = [];
 
-  // --- Build U in local grid ---
   const width = Math.max(3, Math.ceil(totalDivs / 3));
   const remaining = totalDivs - width;
   const height = Math.ceil(remaining / 2);
@@ -110,35 +110,49 @@ function placeDivsInU(totalDivs, rotation = 0, boxSize = 50, gap = 10) {
     positions.push({ x: width - 1, y });
   }
 
-  // --- Rotate ---
+  // Rotate
   const rotated = positions.map(p => rotatePoint(p.x, p.y, rotation));
 
-  // --- Normalize so no negatives ---
+  // Normalize
   const minX = Math.min(...rotated.map(p => p.x));
   const minY = Math.min(...rotated.map(p => p.y));
 
   rotated.forEach((p, index) => {
     const div = document.getElementById("div-" + index);
     div.style.position = "absolute";
-    div.style.left = (p.x - minX) * step + "px";
+    div.style.left = offsetX + (p.x - minX) * step + "px";
     div.style.top  = (p.y - minY) * step + "px";
   });
-}
 
+  // return width in pixels so caller knows how wide this U is
+  return width * step;
+}
 
 
 
 function makeBoard() {
-  const total = 15; // any number of tiles
+  const total = 15;
   const container = document.getElementById("container");
-  container.innerHTML = "";
 
+  const startIndex = boardCount * total;
+
+  // Create divs for THIS board
   for (let p = 0; p < total; p++) {
-    createAndAddDiv(p);
+    createAndAddDiv(startIndex + p);
   }
 
-  placeDivsInU(total,90); // automatically scales the U
+  // Place board with horizontal offset
+  const boardWidth = placeDivsInU(
+    total,
+    0,          // rotation
+    50,         // box size
+    10,         // gap
+    boardCount * 350 // horizontal spacing
+  );
+
+  boardCount++;
 }
+
 
   
   
