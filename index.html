@@ -77,6 +77,7 @@ function createAndAddDiv(divnum) {
   }
 }
 function placeDivsInU(totalDivs, rotation = 0, boxSize = 50, gap = 10) {
+    boxSize = Math.max(20, boxSize);
   const step = boxSize + gap;
   const positions = [];
 
