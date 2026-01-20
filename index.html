@@ -112,11 +112,13 @@ function createAndAddDiv(divnum) {
   const minX = Math.min(...rotated.map(p => p.x));
   const minY = Math.min(...rotated.map(p => p.y));
 
-  rotated.forEach((p, i) => {
-    const div = document.getElementById("div-" + i);
-    div.style.left = ((p.x - minX) * step) + "px";
-    div.style.top = ((p.y - minY) * step) + "px";
-  });
+ rotated.forEach((p, i) => {
+  const div = document.getElementById("div-" + i);
+
+  div.style.position = "absolute"; // ← REQUIRED
+  div.style.left = ((p.x - minX) * step) + "px";
+  div.style.top  = ((p.y - minY) * step) + "px";
+});
 }
 function rotatePoint(x, y, r) {
   switch (r % 4) {
