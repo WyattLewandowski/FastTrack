@@ -75,47 +75,35 @@ newDiv.style.boxSizing = "border-box";
     div.style.top = (row * (boxSize + gap)) + "px";
   }
 }
-function placeDivsInU(totalDivs, rotation = 0, boxSize = 50, gap = 10) {
-    boxSize = Math.max(20, boxSize);
+function placeDivsInU(totalDivs, boxSize = 50, gap = 10) {
   const step = boxSize + gap;
   const positions = [];
 
-  let index = 0;
-
-  // --- Determine sizes automatically ---
-  // Bottom row length: at least 2, no more than totalDivs
-  const bottomCount = Math.min(Math.max(2, Math.ceil(totalDivs / 3)), totalDivs);
-  
-  // Right column height: enough to fit remaining tiles
+  const bottomCount = Math.max(3, Math.ceil(totalDivs / 3));
   const sideHeight = Math.ceil((totalDivs - bottomCount) / 2);
 
-  // --- Bottom row (left → right) ---
-  for (let i = 0; i < bottomCount && index < totalDivs; i++, index++) {
-    positions.push({ x: i, y: sideHeight });
+  let index = 0;
+
+  // Bottom row
+  for (let x = 0; x < bottomCount && index < totalDivs; x++, index++) {
+    positions.push({ x, y: sideHeight });
   }
 
-  // --- Right column (bottom → top, stop before top row) ---
-  for (let i = 1; i <= sideHeight && index < totalDivs; i++, index++) {
-    positions.push({ x: bottomCount - 1, y: sideHeight - i });
+  // Left column
+  for (let y = sideHeight - 1; y >= 0 && index < totalDivs; y--, index++) {
+    positions.push({ x: 0, y });
   }
 
-  // --- Top row (right → left) ---
-  for (let i = bottomCount - 2; i >= 0 && index < totalDivs; i--, index++) {
-    positions.push({ x: i, y: 0 });
+  // Right column
+  for (let y = sideHeight - 1; y >= 0 && index < totalDivs; y--, index++) {
+    positions.push({ x: bottomCount - 1, y });
   }
 
-  // --- Rotate points ---
-  const rotated = positions.map(p => rotatePoint(p.x, p.y, rotation));
-
-  // --- Normalize coordinates ---
-  const minX = Math.min(...rotated.map(p => p.x));
-  const minY = Math.min(...rotated.map(p => p.y));
-
-  rotated.forEach((p, i) => {
+  positions.forEach((p, i) => {
     const div = document.getElementById("div-" + i);
     div.style.position = "absolute";
-    div.style.left = ((p.x - minX) * step) + "px";
-    div.style.top  = ((p.y - minY) * step) + "px";
+    div.style.left = (p.x * step) + "px";
+    div.style.top  = (p.y * step) + "px";
   });
 }
 
