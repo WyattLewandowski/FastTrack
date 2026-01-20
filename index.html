@@ -76,40 +76,38 @@ function createAndAddDiv(divnum) {
     div.style.top = (row * (boxSize + gap)) + "px";
   }
 }
- function placeDivsInU(
-  totalDivs,
-  rotation = 0,
-  boxSize = 50,
-  gap = 10,
-  bottomCount = 4,
-  sideHeight = 3
-) {
+function placeDivsInU(totalDivs, rotation = 0, boxSize = 50, gap = 10) {
   const step = boxSize + gap;
   const positions = [];
 
   let index = 0;
 
-  // Bottom row (left → right)
+  // --- Determine sizes automatically ---
+  // Bottom row length: at least 2, no more than totalDivs
+  const bottomCount = Math.min(Math.max(2, Math.ceil(totalDivs / 3)), totalDivs);
+  
+  // Right column height: enough to fit remaining tiles
+  const sideHeight = Math.ceil((totalDivs - bottomCount) / 2);
+
+  // --- Bottom row (left → right) ---
   for (let i = 0; i < bottomCount && index < totalDivs; i++, index++) {
     positions.push({ x: i, y: sideHeight });
   }
 
-  // Right column (bottom → top, stop BEFORE top)
-  for (let i = 1; i < sideHeight && index < totalDivs; i++, index++) {
+  // --- Right column (bottom → top, stop before top row) ---
+  for (let i = 1; i <= sideHeight && index < totalDivs; i++, index++) {
     positions.push({ x: bottomCount - 1, y: sideHeight - i });
   }
 
-  // Top row (right → left)
+  // --- Top row (right → left) ---
   for (let i = bottomCount - 2; i >= 0 && index < totalDivs; i--, index++) {
     positions.push({ x: i, y: 0 });
   }
 
-  // 🔴 NO LEFT COLUMN → stays open
-
-  // Rotate
+  // --- Rotate points ---
   const rotated = positions.map(p => rotatePoint(p.x, p.y, rotation));
 
-  // Normalize
+  // --- Normalize coordinates ---
   const minX = Math.min(...rotated.map(p => p.x));
   const minY = Math.min(...rotated.map(p => p.y));
 
@@ -119,12 +117,12 @@ function createAndAddDiv(divnum) {
     div.style.left = ((p.x - minX) * step) + "px";
     div.style.top  = ((p.y - minY) * step) + "px";
   });
-} 
+}
 
-function makeBoard() {
-  const total = 10;
 
-  
+
+makeBoard() {
+  const total = 15; // any number of tiles
   const container = document.getElementById("container");
   container.innerHTML = "";
 
@@ -132,11 +130,12 @@ function makeBoard() {
     createAndAddDiv(p);
   }
 
+  placeDivsInU(total, 0); // automatically scales the U
+}
+
   
   
    
- placeDivsInU(10,2);
-}
 
 //spaces stuff end
 </script>
