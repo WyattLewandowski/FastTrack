@@ -20,10 +20,7 @@
 </style>
   <script>
     // global variables
- const centerOffsetX = (boxSize + gap) * 1; // half U width
-const centerOffsetY = (boxSize + gap) * 1; // half U height
-const left = offsetX + (p.x - minX) * step - centerOffsetX;
-const top  = (p.y - minY) * step - centerOffsetY;
+
     let boardIndex = 0;
 
     const boardsPerCircle = 6;   // 6-point star (change to 4, 8, etc)
@@ -134,6 +131,10 @@ function placeDivsInU(
 
   rotated.forEach((p, index) => {
     const div = document.getElementById("div-" + (startIndex + index));
+const centerOffsetX = (boxSize + gap) * 1; 
+const centerOffsetY = (boxSize + gap) * 1; 
+const left = offsetX + (p.x - minX) * step - centerOffsetX;
+const top  = (p.y - minY) * step - centerOffsetY;
 
     const left = offsetX + (p.x - minX) * step;
     const top  = (p.y - minY) * step;
