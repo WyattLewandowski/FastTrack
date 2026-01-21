@@ -12,8 +12,9 @@
 
 #container {
   position: relative;
-  min-height: 400px;
-  width: auto;
+  width: 800px;
+  height: 600px;
+  border: 1px solid #ccc; /* optional, for debugging */
 }
 
   
@@ -148,20 +149,16 @@ function getStarPlacement(index) {
   const angle = (360 / boardsPerCircle) * index;
   const radians = angle * Math.PI / 180;
 
-  const baseRadius = radius;
-  const spacing = 120; // board spacing
-
-  const r = baseRadius + index * spacing;
-
   const centerX = 400;
-  const centerY = 200;
+  const centerY = 300;
 
   return {
-    x: centerX + Math.cos(radians) * r,
-    y: centerY + Math.sin(radians) * r,
+    x: centerX + Math.cos(radians) * radius,
+    y: centerY + Math.sin(radians) * radius,
     rotation: angle + 270
   };
 }
+
 
 
 
