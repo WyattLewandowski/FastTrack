@@ -179,8 +179,11 @@ function makeBoard() {
 
   // star placement
   const placement = getStarPlacement(boardIndex);
+const boxSize = 50;
+const gap = 10;
+const uWidth = (3 * boxSize) + (2 * gap);
 
-const offsetX = placement.x;
+const offsetX = placement.x - uWidth / 2;
 
 placeDivsInU( total, startIndex, placement.rotation, 50, 10, offsetX);
 
