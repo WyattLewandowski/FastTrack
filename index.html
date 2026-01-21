@@ -154,7 +154,8 @@ function getStarPlacement(index) {
   return {
     x: centerX + Math.cos(radians) * radius,
     y: centerY + Math.sin(radians) * radius,
-    rotation: (angle + 180) % 360
+    rotation: (angle + 270) % 360
+
   };
 }
 
@@ -174,14 +175,7 @@ function makeBoard() {
   // star placement
   const placement = getStarPlacement(boardIndex);
 
-  placeDivsInU(
-    total,
-    startIndex,
-    placement.rotation,
-    50,
-    10,
-    placement.x
-  );
+  placeDivsInU(total, startIndex, placement.rotation, 50, 10, placement.x  );
 
   // vertical offset
   for (let i = 0; i < total; i++) {
