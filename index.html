@@ -88,30 +88,31 @@ newDiv.style.boxSizing = "border-box";
   }
 }
 
-function placeDivsInU(  totalDivs,  startIndex,  rotation = 0,  boxSize = 50,  gap = 10,  offsetX = 0) {
+function placeDivsInU(
+  totalDivs,
+  startIndex,
+  rotation = 0,
+  boxSize = 50,
+  gap = 10,
+  offsetX = 0
+) {
   const step = boxSize + gap;
-  const positions = [];
 
-  const width = Math.max(3, Math.ceil(totalDivs / 3));
-  const remaining = totalDivs - width;
-  const height = Math.ceil(remaining / 2);
+  // Fixed 7-square U
+  const positions = [
+    // bottom row
+    { x: 0, y: 2 },
+    { x: 1, y: 2 },
+    { x: 2, y: 2 },
 
-  let i = 0;
+    // left column
+    { x: 0, y: 1 },
+    { x: 0, y: 0 },
 
-  // Bottom row
-  for (let x = 0; x < width && i < totalDivs; x++, i++) {
-    positions.push({ x, y: height });
-  }
-
-  // Left column
-  for (let y = height - 1; y >= 0 && i < totalDivs; y--, i++) {
-    positions.push({ x: 0, y });
-  }
-
-  // Right column
-  for (let y = height - 1; y >= 0 && i < totalDivs; y--, i++) {
-    positions.push({ x: width - 1, y });
-  }
+    // right column
+    { x: 2, y: 1 },
+    { x: 2, y: 0 }
+  ];
 
   // Rotate
   const rotated = positions.map(p => rotatePoint(p.x, p.y, rotation));
@@ -122,25 +123,26 @@ function placeDivsInU(  totalDivs,  startIndex,  rotation = 0,  boxSize = 50,  g
 
   let maxX = 0;
 
-rotated.forEach((p, index) => {
-  const div = document.getElementById("div-" + (startIndex + index));
-  const left = offsetX + (p.x - minX) * step;
+  rotated.forEach((p, index) => {
+    const div = document.getElementById("div-" + (startIndex + index));
 
-  div.style.position = "absolute";
-  div.style.left = left + "px";
-  div.style.top  = (p.y - minY) * step + "px";
+    const left = offsetX + (p.x - minX) * step;
+    const top  = (p.y - minY) * step;
 
-  maxX = Math.max(maxX, left + boxSize);
-});
+    div.style.position = "absolute";
+    div.style.left = left + "px";
+    div.style.top  = top + "px";
 
-return maxX;
+    maxX = Math.max(maxX, left + boxSize);
+  });
 
+  return maxX;
 }
 
 
 
 function makeBoard() {
-  const total = 15;
+  const total = 7;
   const container = document.getElementById("container");
 
   const startIndex = boardCount * total;
