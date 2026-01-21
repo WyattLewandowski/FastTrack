@@ -97,11 +97,10 @@ function rotatePoint(x, y, angleDeg) {
 function placeDivsInU(
   totalDivs,
   startIndex,
-  rotationDeg,
+  rotation = 0,
   boxSize = 50,
   gap = 10,
-  centerX = 0,
-  centerY = 0
+  offsetX = 0
 ) {
   const step = boxSize + gap;
 
@@ -121,29 +120,54 @@ function placeDivsInU(
     { x: 2, y: 0 }
   ];
 
-  // Compute center of the U
-  const uCenterX = (Math.max(...positions.map(p => p.x)) + Math.min(...positions.map(p => p.x))) / 2;
-  const uCenterY = (Math.max(...positions.map(p => p.y)) + Math.min(...positions.map(p => p.y))) / 2;
+  // Rotate
+  const rotated = positions.map(p => rotatePoint(p.x, p.y, rotation));
 
-  positions.forEach((p, index) => {
-    // Rotate around the U's center
-    const dx = p.x - uCenterX;
-    const dy = p.y - uCenterY;
+  // Normalize
+  const minX = Math.min(...rotated.map(p => p.x));
+  const minY = Math.min(...rotated.map(p => p.y));
 
-    const rad = rotationDeg * Math.PI / 180;
-    const rx = dx * Math.cos(rad) - dy * Math.sin(rad);
-    const ry = dx * Math.sin(rad) + dy * Math.cos(rad);
+  let maxX = 0;
 
+  rotated.forEach((p, index) => {
     const div = document.getElementById("div-" + (startIndex + index));
+
+    const left = offsetX + (p.x - minX) * step;
+    const top  = (p.y - minY) * step;
+
     div.style.position = "absolute";
-    div.style.left = centerX + rx * step + "px";
-    div.style.top  = centerY + ry * step + "px";
+    div.style.left = left + "px";
+    div.style.top  = top + "px";
+
+    maxX = Math.max(maxX, left + boxSize);
   });
+
+  return maxX;
 }
+function getStarPlacement(index) {
+  const angle = (360 / boardsPerCircle) * index;
+  const radians = angle * Math.PI / 180;
+
+  const centerX = 400;
+  const centerY = 200;
+
+  // Calculate rotation toward center
+  const rotation = angle + 180; // still points toward center
+
+  return {
+    x: centerX + Math.cos(radians) * radius,
+    y: centerY + Math.sin(radians) * radius,
+    rotation: rotation
+  };
+}
+
+
+
 
 function makeBoard() {
   const total = 7;
   const container = document.getElementById("container");
+
   const startIndex = boardIndex * total;
 
   // create squares
@@ -154,14 +178,14 @@ function makeBoard() {
   // star placement
   const placement = getStarPlacement(boardIndex);
 
-  // Calculate angle toward center
-  const centerX = 400;
-  const centerY = 200;
-  const dx = centerX - placement.x;
-  const dy = centerY - placement.y;
-  const angleDeg = Math.atan2(dy, dx) * 180 / Math.PI;
+  placeDivsInU(total, startIndex, placement.rotation, 50, 10, placement.x  );
 
-  placeDivsInU(total, startIndex, angleDeg, 50, 10, placement.x, placement.y);
+  // vertical offset
+  for (let i = 0; i < total; i++) {
+    const div = document.getElementById("div-" + (startIndex + i));
+    div.style.top =
+      parseFloat(div.style.top) + placement.y + "px";
+  }
 
   boardIndex++;
 }
