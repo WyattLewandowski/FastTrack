@@ -87,12 +87,13 @@ newDiv.style.boxSizing = "border-box";
 }
     function rotatePoint(x, y, rotation) {
   switch (rotation) {
-    case 90:  return { x: -y, y: x };
+    case 90:  return { x: y, y: -x };   // clockwise
     case 180: return { x: -x, y: -y };
-    case 270: return { x: y, y: -x };
-    default:  return { x, y }; // 0°
+    case 270: return { x: -y, y: x };
+    default:  return { x, y };
   }
 }
+
 
 function placeDivsInU(
   totalDivs,
