@@ -20,8 +20,14 @@
 </style>
   <script>
     // global variables
-    let boardCount = 0;
-    let containerRightEdge = 0;
+ 
+    let boardIndex = 0;
+
+    const boardsPerCircle = 6;   // 6-point star (change to 4, 8, etc)
+
+    const radius = 180;          // distance from center
+
+  //  let containerRightEdge = 0;
     //drag and drop stuff start
 function dragstartHandler(ev) {
   ev.dataTransfer.setData("text", ev.target.id);
@@ -138,6 +144,19 @@ function placeDivsInU(
 
   return maxX;
 }
+function getStarPlacement(index) {
+  const angle = (360 / boardsPerCircle) * index;
+  const radians = angle * Math.PI / 180;
+
+  const centerX = 400;
+  const centerY = 200;
+
+  return {
+    x: centerX + Math.cos(radians) * radius,
+    y: centerY + Math.sin(radians) * radius,
+    rotation: (angle + 180) % 360
+  };
+}
 
 
 
@@ -145,27 +164,34 @@ function makeBoard() {
   const total = 7;
   const container = document.getElementById("container");
 
-  const startIndex = boardCount * total;
+  const startIndex = boardIndex * total;
 
+  // create squares
   for (let p = 0; p < total; p++) {
     createAndAddDiv(startIndex + p);
   }
 
-  const boardRightEdge = placeDivsInU(
+  // star placement
+  const placement = getStarPlacement(boardIndex);
+
+  placeDivsInU(
     total,
     startIndex,
-    0,
+    placement.rotation,
     50,
     10,
-    containerRightEdge + 40 // spacing between boards
+    placement.x
   );
 
-  containerRightEdge = boardRightEdge;
-  container.style.width = containerRightEdge + "px";
+  // vertical offset
+  for (let i = 0; i < total; i++) {
+    const div = document.getElementById("div-" + (startIndex + i));
+    div.style.top =
+      parseFloat(div.style.top) + placement.y + "px";
+  }
 
-  boardCount++;
+  boardIndex++;
 }
-
 
 
   
