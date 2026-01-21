@@ -148,18 +148,21 @@ function getStarPlacement(index) {
   const angle = (360 / boardsPerCircle) * index;
   const radians = angle * Math.PI / 180;
 
+  const baseRadius = radius;
+  const spacing = 120; // board spacing
+
+  const r = baseRadius + index * spacing;
+
   const centerX = 400;
   const centerY = 200;
 
-  // Calculate rotation toward center
-  const rotation = angle + 270; // still points toward center
-
   return {
-    x: centerX + Math.cos(radians) * radius,
-    y: centerY + Math.sin(radians) * radius,
-    rotation: rotation
+    x: centerX + Math.cos(radians) * r,
+    y: centerY + Math.sin(radians) * r,
+    rotation: angle + 270
   };
 }
+
 
 
 
@@ -167,7 +170,7 @@ function getStarPlacement(index) {
 function makeBoard() {
   const total = 7;
   const container = document.getElementById("container");
-  const boardSpacing = 120; // space between U boards
+
 
 
   const startIndex = boardIndex * total;
@@ -180,7 +183,7 @@ function makeBoard() {
   // star placement
   const placement = getStarPlacement(boardIndex);
 
-const offsetX = placement.x + boardIndex * boardSpacing;
+const offsetX = placement.x;
 
 placeDivsInU( total, startIndex, placement.rotation, 50, 10, offsetX);
 
