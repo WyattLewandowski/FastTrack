@@ -108,15 +108,22 @@
       const numU = parseInt(document.getElementById("numUSelect").value);
       const centerX = 400;
       const centerY = 300;
-      const totalPerU = 7;
 
-      for (let i = 0; i < numU; i++) {
-        const startIndex = i * totalPerU;
-        for (let j = 0; j < totalPerU; j++) {
-          createCell("div-" + (startIndex + j));
+      const marblesPerU = 4; // number of each marble per U
+
+      let cellIndex = 0; // unique ID counter for all cells
+
+      for (let u = 1; u <= numU; u++) {
+        const startIndex = cellIndex;
+
+        // Create 4 marbles for this U
+        for (let m = 1; m <= marblesPerU; m++) {
+          createCell("div-" + (cellIndex));
+          cellIndex++;
         }
 
-        const angle = (360 / numU) * i;
+        // Place the U
+        const angle = (360 / numU) * (u - 1);
         placeU(startIndex, angle, centerX, centerY);
       }
     }
@@ -139,70 +146,11 @@
   <button onclick="makeStar()">Create Star</button>
 
   <p>Drag the image or squares onto the U's cells.</p>
-  <img
-    id="img1-1"
-    src="marble 1.png"
-    draggable="true"
-    ondragstart="dragstartHandler(event)"
-    width="50"
-    height="60"
-  >
-   <img
-    id="img1-2"
-    src="marble 2.png"
-    draggable="true"
-    ondragstart="dragstartHandler(event)"
-    width="50"
-    height="60"
-  >
-   <img
-    id="img1-3"
-    src="marble 3.png"
-    draggable="true"
-    ondragstart="dragstartHandler(event)"
-    width="50"
-    height="60"
-  >
-   <img
-    id="img1-4"
-    src="marble 4.png"
-    draggable="true"
-    ondragstart="dragstartHandler(event)"
-    width="50"
-    height="60"
-  >
-    <img
-    id="img1-5"
-    src="marble 5.png"
-    draggable="true"
-    ondragstart="dragstartHandler(event)"
-    width="50"
-    height="60"
-  >
-   <img
-    id="img1-6"
-    src="marble 6.png"
-    draggable="true"
-    ondragstart="dragstartHandler(event)"
-    width="50"
-    height="60"
-  >
-   <img
-    id="img1-7"
-    src="marble 7.png"
-    draggable="true"
-    ondragstart="dragstartHandler(event)"
-    width="50"
-    height="60"
-  >
-   <img
-    id="img1-8"
-    src="marble 8.png"
-    draggable="true"
-    ondragstart="dragstartHandler(event)"
-    width="50"
-    height="60"
-  >
+  <img id="img1-1" src="marble 1.png" draggable="true" ondragstart="dragstartHandler(event)" width="50" height="60">
+  <img id="img1-2" src="marble 2.png" draggable="true" ondragstart="dragstartHandler(event)" width="50" height="60">
+  <img id="img1-3" src="marble 3.png" draggable="true" ondragstart="dragstartHandler(event)" width="50" height="60">
+  <img id="img1-4" src="marble 4.png" draggable="true" ondragstart="dragstartHandler(event)" width="50" height="60">
+  <img id="img1-5" src="marble 5.png" draggable="true" ondragstart="dragstartHandler(event)" width="50" height="60">
+  <img id="img1-6" src="marble 6.png" draggable="true" ondragstart="dragstartHandler(event)" width="50" height="60">
 </body>
 </html>
-
