@@ -145,7 +145,7 @@ function placeDivsInU(
 
   return maxX;
 }
-    function getStarPlacement(index) {
+function getStarPlacement(index) {
   const angle = (360 / boardsPerCircle) * index;
   const radians = angle * Math.PI / 180;
 
@@ -154,18 +154,18 @@ function placeDivsInU(
 
   const boxSize = 50;
   const gap = 10;
-  const uSize = (3 * boxSize) + (2 * gap);
+  const uDepth = (3 * boxSize) + (2 * gap);
 
-  // Push U's outward so they don't overlap
-  const uPushOut = Math.sqrt(2) * uSize / 2;
-  const finalRadius = radius + uPushOut;
+  // Move the U so its OPEN END sits on the circle
+  const placementRadius = radius + uDepth / 2;
 
   return {
-    x: centerX + Math.cos(radians) * finalRadius,
-    y: centerY + Math.sin(radians) * finalRadius,
+    x: centerX + Math.cos(radians) * placementRadius,
+    y: centerY + Math.sin(radians) * placementRadius,
     rotation: angle + 270
   };
 }
+
 
 
 
