@@ -124,24 +124,31 @@ function placeDivsInU(
   // Rotate
   const rotated = positions.map(p => rotatePoint(p.x, p.y, rotation));
 
-  // Normalize
-  const minX = Math.min(...rotated.map(p => p.x));
-  const minY = Math.min(...rotated.map(p => p.y));
+  
+  // Find bounds
+const minX = Math.min(...rotated.map(p => p.x));
+const maxX = Math.max(...rotated.map(p => p.x));
+const minY = Math.min(...rotated.map(p => p.y));
+const maxY = Math.max(...rotated.map(p => p.y));
+
+// Center of rotated U
+const centerX = (minX + maxX) / 2;
+const centerY = (minY + maxY) / 2;
+
 
   let maxX = 0;
 
   rotated.forEach((p, index) => {
-    const div = document.getElementById("div-" + (startIndex + index));
+  const div = document.getElementById("div-" + (startIndex + index));
 
-    const left = offsetX + (p.x - minX) * step;
-    const top  = (p.y - minY) * step;
+  const left = offsetX + (p.x - centerX) * step;
+  const top  = (p.y - centerY) * step;
 
-    div.style.position = "absolute";
-    div.style.left = left + "px";
-    div.style.top  = top + "px";
+  div.style.position = "absolute";
+  div.style.left = left + "px";
+  div.style.top  = top + "px";
+});
 
-    maxX = Math.max(maxX, left + boxSize);
-  });
 
   return maxX;
 }
