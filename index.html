@@ -16,6 +16,14 @@
       height: 600px;
       border: 1px solid #ccc;
     }
+
+    .cell {
+      width: 50px;
+      height: 50px;
+      border: 3px solid red;
+      box-sizing: border-box;
+      position: absolute;
+    }
   </style>
 
   <script>
@@ -23,6 +31,27 @@
 
     const boardsPerCircle = 8;
     const baseRadius = 180;
+    const boxSize = 50;
+    const gap = 10;
+    const step = boxSize + gap;
+
+    /* ---------- Drag & Drop ---------- */
+
+    function dragstartHandler(ev) {
+      ev.dataTransfer.setData("text", ev.target.id);
+    }
+
+    function dragoverHandler(ev) {
+      ev.preventDefault();
+    }
+
+    function dropHandler(ev) {
+      ev.preventDefault();
+      const data = ev.dataTransfer.getData("text");
+      ev.target.appendChild(document.getElementById(data));
+    }
+
+    /* ---------- Geometry ---------- */
 
     function rotatePoint(x, y, angleDeg) {
       const rad = angleDeg * Math.PI / 180;
@@ -32,83 +61,89 @@
       };
     }
 
-    function createAndAddDiv(id) {
+    /* ---------- Create Cells ---------- */
+
+    function createCell(id) {
       const d = document.createElement("div");
       d.id = id;
-      d.style.width = "50px";
-      d.style.height = "50px";
-      d.style.border = "3px solid red";
-      d.style.boxSizing = "border-box";
-      d.style.position = "absolute";
+      d.className = "cell";
+      d.addEventListener("dragover", dragoverHandler);
+      d.addEventListener("drop", dropHandler);
       document.getElementById("container").appendChild(d);
     }
 
-    function placeDivsInU(startIndex, rotationDeg, centerX, centerY) {
-      const boxSize = 50;
-      const gap = 10;
-      const step = boxSize + gap;
+    /* ---------- Place U ---------- */
 
-      // U shape (local grid)
-      const positions = [
+    function placeU(startIndex, angleDeg, centerX, centerY) {
+
+      // U shape in grid space
+      const grid = [
         { x: 0, y: 2 }, { x: 1, y: 2 }, { x: 2, y: 2 },
         { x: 0, y: 1 }, { x: 0, y: 0 },
         { x: 2, y: 1 }, { x: 2, y: 0 }
       ];
 
-      // Center grid at origin BEFORE rotation
-      const centered = positions.map(p => ({
+      // Center grid around (0,0)
+      const centered = grid.map(p => ({
         x: p.x - 1,
         y: p.y - 1
       }));
 
-      // Rotate
-      const rotated = centered.map(p => rotatePoint(p.x, p.y, rotationDeg));
+      // Rotate toward CENTER (angle + 90)
+      const rotated = centered.map(p =>
+        rotatePoint(p.x, p.y, angleDeg + 90)
+      );
 
-      // Compute bounding radius (for perfect spacing)
-      const maxDist = Math.max(
-        ...rotated.map(p => Math.hypot(p.x, p.y))
-      ) * step + boxSize / 2;
+      // Compute bounding radius of rotated U
+      const maxDist =
+        Math.max(...rotated.map(p => Math.hypot(p.x, p.y))) * step +
+        boxSize / 2;
 
-      // Final placement radius
-      const angleRad = rotationDeg * Math.PI / 180;
-      const finalX = centerX + Math.cos(angleRad) * (baseRadius + maxDist);
-      const finalY = centerY + Math.sin(angleRad) * (baseRadius + maxDist);
+      // Position center of U on star
+      const rad = angleDeg * Math.PI / 180;
+      const baseX = centerX + Math.cos(rad) * (baseRadius + maxDist);
+      const baseY = centerY + Math.sin(rad) * (baseRadius + maxDist);
 
-      // Place divs
+      // Place cells
       rotated.forEach((p, i) => {
         const div = document.getElementById("div-" + (startIndex + i));
-        div.style.left = finalX + p.x * step + "px";
-        div.style.top  = finalY + p.y * step + "px";
+        div.style.left = baseX + p.x * step + "px";
+        div.style.top  = baseY + p.y * step + "px";
       });
     }
+
+    /* ---------- Board ---------- */
 
     function makeBoard() {
       const total = 7;
       const startIndex = boardIndex * total;
 
       for (let i = 0; i < total; i++) {
-        createAndAddDiv("div-" + (startIndex + i));
+        createCell("div-" + (startIndex + i));
       }
 
       const angle = (360 / boardsPerCircle) * boardIndex;
       const centerX = 400;
       const centerY = 300;
 
-      placeDivsInU(startIndex, angle + 270, centerX, centerY);
-
+      placeU(startIndex, angle, centerX, centerY);
       boardIndex++;
     }
   </script>
 </head>
 
 <body>
-
   <div id="container"></div>
-<img id="img1" src="Screenshot 2025-09-15 124215.png" draggable="true" ondragstart="dragstartHandler(event)" width="50" height="60">
-<img id="dice" src="dice six side.png" width="100" height="100">
-<button onclick="makeBoard()" > set Board </button>
 
+  <img
+    id="img1"
+    src="Screenshot 2025-09-15 124215.png"
+    draggable="true"
+    ondragstart="dragstartHandler(event)"
+    width="50"
+    height="60"
+  >
 
-  
+  <button onclick="makeBoard()">Set Board</button>
 </body>
 </html>
