@@ -145,19 +145,28 @@ function placeDivsInU(
 
   return maxX;
 }
-function getStarPlacement(index) {
+    function getStarPlacement(index) {
   const angle = (360 / boardsPerCircle) * index;
   const radians = angle * Math.PI / 180;
 
   const centerX = 400;
   const centerY = 300;
 
+  const boxSize = 50;
+  const gap = 10;
+  const uSize = (3 * boxSize) + (2 * gap);
+
+  // Push U's outward so they don't overlap
+  const uPushOut = Math.sqrt(2) * uSize / 2;
+  const finalRadius = radius + uPushOut;
+
   return {
-    x: centerX + Math.cos(radians) * radius,
-    y: centerY + Math.sin(radians) * radius,
+    x: centerX + Math.cos(radians) * finalRadius,
+    y: centerY + Math.sin(radians) * finalRadius,
     rotation: angle + 270
   };
 }
+
 
 
 
