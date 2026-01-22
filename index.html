@@ -91,7 +91,7 @@
 
       // Rotate toward CENTER (angle + 90)
       const rotated = centered.map(p =>
-        rotatePoint(p.x, p.y, angleDeg + 90)
+        rotatePoint(p.x, p.y, angleDeg - 90)
       );
 
       // Compute bounding radius of rotated U
