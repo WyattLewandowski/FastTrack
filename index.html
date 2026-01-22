@@ -2,234 +2,112 @@
 <html>
 <head>
   <style>
-  body {
-    margin: 0;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-#container {
-  position: relative;
-  width: 800px;
-  height: 600px;
-  border: 1px solid #ccc; /* optional, for debugging */
-}
+    #container {
+      position: relative;
+      width: 800px;
+      height: 600px;
+      border: 1px solid #ccc;
+    }
+  </style>
 
-  
-</style>
   <script>
-    // global variables
-
     let boardIndex = 0;
 
-    const boardsPerCircle = 8;   // 6-point star (change to 4, 8, etc)
+    const boardsPerCircle = 8;
+    const baseRadius = 180;
 
-    const radius = 180;          // distance from center
-
-  //  let containerRightEdge = 0;
-    //drag and drop stuff start
-function dragstartHandler(ev) {
-  ev.dataTransfer.setData("text", ev.target.id);
-}
-
-function dragoverHandler(ev) {
-  ev.preventDefault();
-}
-
-function dropHandler(ev) {
-  ev.preventDefault();
-  const data = ev.dataTransfer.getData("text");
-  ev.target.appendChild(document.getElementById(data));
-}
-    //drag and drop stuff end
-    //dice
-function rollDice() {
-      const diceFaces = ["dice one side.png", "dice two side.png", "dice three side.png", "four side dice.png", "dice five side.png", "dice six side.png"];
-      const randomIndex = Math.floor(Math.random() * 6);
-      document.getElementById("dice").src = diceFaces[randomIndex];
+    function rotatePoint(x, y, angleDeg) {
+      const rad = angleDeg * Math.PI / 180;
+      return {
+        x: x * Math.cos(rad) - y * Math.sin(rad),
+        y: x * Math.sin(rad) + y * Math.cos(rad)
+      };
     }
-//spaces stuff start
-    function placeDiv(x_pos, y_pos, divname) {
-  var d = document.getElementById(divname);
-  d.style.position = "absolute";
-  d.style.left = x_pos+'px';
-  d.style.top = y_pos+'px';
-}
-function createAndAddDiv(divnum) {
-  const newDiv = document.createElement("div");
-  newDiv.id = "div-" + divnum;
 
-  newDiv.style.width = "50px";
-newDiv.style.height = "50px";
-newDiv.style.border = "3px solid red";
-newDiv.style.boxSizing = "border-box";
+    function createAndAddDiv(id) {
+      const d = document.createElement("div");
+      d.id = id;
+      d.style.width = "50px";
+      d.style.height = "50px";
+      d.style.border = "3px solid red";
+      d.style.boxSizing = "border-box";
+      d.style.position = "absolute";
+      document.getElementById("container").appendChild(d);
+    }
 
-  newDiv.addEventListener("drop", dropHandler);
-  newDiv.addEventListener("dragover", dragoverHandler);
+    function placeDivsInU(startIndex, rotationDeg, centerX, centerY) {
+      const boxSize = 50;
+      const gap = 10;
+      const step = boxSize + gap;
 
-  const container = document.getElementById("container");
-  container.appendChild(newDiv);
-}
-  function placeDivsInSquare(totalDivs, boxSize = 50, gap = 10) {
-  const cols = Math.ceil(Math.sqrt(totalDivs));
-//SIX SEVEN!!!!!!!!!!!!!!!!!!!!!!!!!
-  for (let i = 0; i < totalDivs; i++) {
-    const div = document.getElementById("div-" + i);
+      // U shape (local grid)
+      const positions = [
+        { x: 0, y: 2 }, { x: 1, y: 2 }, { x: 2, y: 2 },
+        { x: 0, y: 1 }, { x: 0, y: 0 },
+        { x: 2, y: 1 }, { x: 2, y: 0 }
+      ];
 
-    const row = Math.floor(i / cols);
-    const col = i % cols;
+      // Center grid at origin BEFORE rotation
+      const centered = positions.map(p => ({
+        x: p.x - 1,
+        y: p.y - 1
+      }));
 
-    div.style.position = "absolute";
-    div.style.left = (col * (boxSize + gap)) + "px";
-    div.style.top = (row * (boxSize + gap)) + "px";
-  }
-}
-function rotatePoint(x, y, angleDeg) {
-  const rad = angleDeg * Math.PI / 180;
-  return {
-    x: x * Math.cos(rad) - y * Math.sin(rad),
-    y: x * Math.sin(rad) + y * Math.cos(rad)
-  };
-}
+      // Rotate
+      const rotated = centered.map(p => rotatePoint(p.x, p.y, rotationDeg));
 
+      // Compute bounding radius (for perfect spacing)
+      const maxDist = Math.max(
+        ...rotated.map(p => Math.hypot(p.x, p.y))
+      ) * step + boxSize / 2;
 
-function placeDivsInU(
-  totalDivs,
-  startIndex,
-  rotation = 0,
-  boxSize = 50,
-  gap = 10,
-  offsetX = 0
-) {
-  const step = boxSize + gap;
+      // Final placement radius
+      const angleRad = rotationDeg * Math.PI / 180;
+      const finalX = centerX + Math.cos(angleRad) * (baseRadius + maxDist);
+      const finalY = centerY + Math.sin(angleRad) * (baseRadius + maxDist);
 
-  // Fixed 7-square U
-  const positions = [
-    // bottom row
-    { x: 0, y: 2 },
-    { x: 1, y: 2 },
-    { x: 2, y: 2 },
+      // Place divs
+      rotated.forEach((p, i) => {
+        const div = document.getElementById("div-" + (startIndex + i));
+        div.style.left = finalX + p.x * step + "px";
+        div.style.top  = finalY + p.y * step + "px";
+      });
+    }
 
-    // left column
-    { x: 0, y: 1 },
-    { x: 0, y: 0 },
+    function makeBoard() {
+      const total = 7;
+      const startIndex = boardIndex * total;
 
-    // right column
-    { x: 2, y: 1 },
-    { x: 2, y: 0 }
-  ];
+      for (let i = 0; i < total; i++) {
+        createAndAddDiv("div-" + (startIndex + i));
+      }
 
-  // Rotate
-  const rotated = positions.map(p => rotatePoint(p.x, p.y, rotation));
+      const angle = (360 / boardsPerCircle) * boardIndex;
+      const centerX = 400;
+      const centerY = 300;
 
-  
-  // Find bounds
-const minX = Math.min(...rotated.map(p => p.x));
-const maxX = Math.max(...rotated.map(p => p.x));
-const minY = Math.min(...rotated.map(p => p.y));
-const maxY = Math.max(...rotated.map(p => p.y));
+      placeDivsInU(startIndex, angle + 270, centerX, centerY);
 
-// Center of rotated U
-const centerX = (minX + maxX) / 2;
-const centerY = (minY + maxY) / 2;
-
-
-  let maxX = 0;
-
-  rotated.forEach((p, index) => {
-  const div = document.getElementById("div-" + (startIndex + index));
-
-  const left = offsetX + (p.x - centerX) * step;
-  const top  = (p.y - centerY) * step;
-
-  div.style.position = "absolute";
-  div.style.left = left + "px";
-  div.style.top  = top + "px";
-});
-
-
-  return maxX;
-}
-function getStarPlacement(index) {
-  const angle = (360 / boardsPerCircle) * index;
-  const radians = angle * Math.PI / 180;
-
-  const centerX = 400;
-  const centerY = 300;
-
-  const boxSize = 50;
-  const gap = 10;
-  const uDepth = (3 * boxSize) + (2 * gap);
-
-  // Move the U so its OPEN END sits on the circle
-  const placementRadius = radius + uDepth / 2;
-
-  return {
-    x: centerX + Math.cos(radians) * placementRadius,
-    y: centerY + Math.sin(radians) * placementRadius,
-    rotation: angle + 270
-  };
-}
-
-
-
-
-
-
-
-
-function makeBoard() {
-  const total = 7;
-  const container = document.getElementById("container");
-
-
-
-  const startIndex = boardIndex * total;
-
-  // create squares
-  for (let p = 0; p < total; p++) {
-    createAndAddDiv(startIndex + p);
-  }
-
-  // star placement
-  const placement = getStarPlacement(boardIndex);
-const boxSize = 50;
-const gap = 10;
-const uWidth = (3 * boxSize) + (2 * gap);
-
-const offsetX = placement.x - uWidth / 2;
-
-placeDivsInU( total, startIndex, placement.rotation, 50, 10, offsetX);
-
-  // vertical offset
-  for (let i = 0; i < total; i++) {
-    const div = document.getElementById("div-" + (startIndex + i));
-    div.style.top =
-      parseFloat(div.style.top) + placement.y + "px";
-  }
-
-  boardIndex++;
-}
-
-
-  
-  
-   
-
-//spaces stuff end
-</script>
-<title>Page Title</title>
+      boardIndex++;
+    }
+  </script>
 </head>
-  
+
 <body>
 
   <div id="container"></div>
 <img id="img1" src="Screenshot 2025-09-15 124215.png" draggable="true" ondragstart="dragstartHandler(event)" width="50" height="60">
 <img id="dice" src="dice six side.png" width="100" height="100">
 <button onclick="makeBoard()" > set Board </button>
-<button onclick="rollDice()">Roll Die</button>
+
 
   
 </body>
