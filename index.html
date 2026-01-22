@@ -6,8 +6,10 @@
       margin: 0;
       height: 100vh;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
+      font-family: sans-serif;
     }
 
     #container {
@@ -15,6 +17,7 @@
       width: 800px;
       height: 600px;
       border: 1px solid #ccc;
+      margin-bottom: 20px;
     }
 
     .cell {
@@ -27,16 +30,12 @@
   </style>
 
   <script>
-    let boardIndex = 0;
-
-    const boardsPerCircle = 8;
-    const baseRadius = 180;
     const boxSize = 50;
     const gap = 10;
     const step = boxSize + gap;
+    const radius = 180; // fixed radius of the star
 
     /* ---------- Drag & Drop ---------- */
-
     function dragstartHandler(ev) {
       ev.dataTransfer.setData("text", ev.target.id);
     }
@@ -52,7 +51,6 @@
     }
 
     /* ---------- Geometry ---------- */
-
     function rotatePoint(x, y, angleDeg) {
       const rad = angleDeg * Math.PI / 180;
       return {
@@ -61,8 +59,7 @@
       };
     }
 
-    /* ---------- Create Cells ---------- */
-
+    /* ---------- Create Cell ---------- */
     function createCell(id) {
       const d = document.createElement("div");
       d.id = id;
@@ -72,39 +69,30 @@
       document.getElementById("container").appendChild(d);
     }
 
-    /* ---------- Place U ---------- */
-
+    /* ---------- Place a single U ---------- */
     function placeU(startIndex, angleDeg, centerX, centerY) {
-
-      // U shape in grid space
       const grid = [
         { x: 0, y: 2 }, { x: 1, y: 2 }, { x: 2, y: 2 },
         { x: 0, y: 1 }, { x: 0, y: 0 },
         { x: 2, y: 1 }, { x: 2, y: 0 }
       ];
 
-      // Center grid around (0,0)
       const centered = grid.map(p => ({
         x: p.x - 1,
         y: p.y - 1
       }));
 
-      // Rotate toward CENTER (angle + 90)
+      // Rotate so TOP of U faces center
       const rotated = centered.map(p =>
         rotatePoint(p.x, p.y, angleDeg - 90)
       );
 
-      // Compute bounding radius of rotated U
-      const maxDist =
-        Math.max(...rotated.map(p => Math.hypot(p.x, p.y))) * step +
-        boxSize / 2;
+      const maxDist = Math.max(...rotated.map(p => Math.hypot(p.x, p.y))) * step + boxSize/2;
 
-      // Position center of U on star
       const rad = angleDeg * Math.PI / 180;
-      const baseX = centerX + Math.cos(rad) * (baseRadius + maxDist);
-      const baseY = centerY + Math.sin(rad) * (baseRadius + maxDist);
+      const baseX = centerX + Math.cos(rad) * (radius + maxDist);
+      const baseY = centerY + Math.sin(rad) * (radius + maxDist);
 
-      // Place cells
       rotated.forEach((p, i) => {
         const div = document.getElementById("div-" + (startIndex + i));
         div.style.left = baseX + p.x * step + "px";
@@ -112,22 +100,25 @@
       });
     }
 
-    /* ---------- Board ---------- */
+    /* ---------- Make Star ---------- */
+    function makeStar() {
+      const container = document.getElementById("container");
+      container.innerHTML = ""; // clear old star
 
-    function makeBoard() {
-      const total = 7;
-      const startIndex = boardIndex * total;
-
-      for (let i = 0; i < total; i++) {
-        createCell("div-" + (startIndex + i));
-      }
-
-      const angle = (360 / boardsPerCircle) * boardIndex;
+      const numU = parseInt(document.getElementById("numUSelect").value);
       const centerX = 400;
       const centerY = 300;
+      const totalPerU = 7;
 
-      placeU(startIndex, angle, centerX, centerY);
-      boardIndex++;
+      for (let i = 0; i < numU; i++) {
+        const startIndex = i * totalPerU;
+        for (let j = 0; j < totalPerU; j++) {
+          createCell("div-" + (startIndex + j));
+        }
+
+        const angle = (360 / numU) * i;
+        placeU(startIndex, angle, centerX, centerY);
+      }
     }
   </script>
 </head>
@@ -135,6 +126,19 @@
 <body>
   <div id="container"></div>
 
+  <label for="numUSelect">Number of U's in Star: </label>
+  <select id="numUSelect">
+    <option value="4">4</option>
+    <option value="5">5</option>
+    <option value="6" selected>6</option>
+    <option value="7">7</option>
+    <option value="8">8</option>
+    <option value="10">10</option>
+  </select>
+
+  <button onclick="makeStar()">Create Star</button>
+
+  <p>Drag the image or squares onto the U's cells.</p>
   <img
     id="img1"
     src="Screenshot 2025-09-15 124215.png"
@@ -143,7 +147,6 @@
     width="50"
     height="60"
   >
-
-  <button onclick="makeBoard()">Set Board</button>
 </body>
 </html>
+
