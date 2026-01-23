@@ -20,6 +20,7 @@
       margin-bottom: 20px;
     }
 
+
     .cell {
       width: 50px;
       height: 50px;
@@ -27,6 +28,11 @@
       box-sizing: border-box;
       position: absolute;
     }
+    .cell.green {
+  border-color: green;
+  background: rgba(0, 255, 0, 0.2);
+}
+
   </style>
 
  <script>
@@ -92,14 +98,23 @@ function createCell(id) {
 function placeU(startIndex, angleDeg, centerX, centerY) {
   const grid = [
     { x: 0, y: 2 }, { x: 1, y: 2 }, { x: 2, y: 2 },
-    { x: 0, y: 1 }, { x: 0, y: 0 },
+    { x: 0, y: 1 },
+    { x: 0, y: 0 }, // <-- bottom-left of U
     { x: 2, y: 1 }, { x: 2, y: 0 }
   ];
 
-  const centered = grid.map(p => ({ x: p.x - 1, y: p.y - 1 }));
-  const rotated = centered.map(p => rotatePoint(p.x, p.y, angleDeg - 90));
+  const centered = grid.map(p => ({
+    x: p.x - 1,
+    y: p.y - 1
+  }));
 
-  const maxDist = Math.max(...rotated.map(p => Math.hypot(p.x, p.y))) * step + boxSize/2;
+  const rotated = centered.map(p =>
+    rotatePoint(p.x, p.y, angleDeg - 90)
+  );
+
+  const maxDist =
+    Math.max(...rotated.map(p => Math.hypot(p.x, p.y))) * step +
+    boxSize / 2;
 
   const rad = angleDeg * Math.PI / 180;
   const baseX = centerX + Math.cos(rad) * (radius + maxDist);
@@ -107,10 +122,17 @@ function placeU(startIndex, angleDeg, centerX, centerY) {
 
   rotated.forEach((p, i) => {
     const div = document.getElementById("div-" + (startIndex + i));
+
     div.style.left = baseX + p.x * step + "px";
     div.style.top  = baseY + p.y * step + "px";
+
+    // ✅ color the bottom-left cell green
+    if (grid[i].x === 0 && grid[i].y === 0) {
+      div.classList.add("green");
+    }
   });
 }
+
 
 /* ---------- Make Star ---------- */
 function makeStar() {
