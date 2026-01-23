@@ -1,266 +1,242 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <style>
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-    }
+<style>
+body {
+  margin: 0;
+  font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
 
-    #container {
-      position: relative;
-      width: 800px;
-      height: 600px;
-      border: 1px solid #ccc;
-    }
+#container {
+  position: relative;
+  width: 800px;
+  height: 600px;
+  border: 1px solid #ccc;
+}
 
-    .tray {
-      width: 800px;
-      border: 1px solid #aaa;
-      padding: 5px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
+.tray {
+  width: 800px;
+  border: 1px solid #aaa;
+  padding: 5px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
 
-    .trayTitle {
-      width: 80px;
-      font-weight: bold;
-    }
+.trayTitle {
+  width: 80px;
+  font-weight: bold;
+}
 
-    .cell {
-      width: 50px;
-      height: 50px;
-      border: 3px solid red;
-      box-sizing: border-box;
-      position: absolute;
-    }
+.cell {
+  width: 50px;
+  height: 50px;
+  border: 2px solid red;
+  box-sizing: border-box;
+  position: absolute;
+}
 
-    .cell.home {
-      background: rgba(0, 255, 0, 0.25);
-      border-color: green;
-    }
+.cell.home {
+  border-width: 3px;
+}
 
-    .cell.disabled {
-      opacity: 0.3;
-    }
+.cell.disabled {
+  opacity: 0.3;
+}
 
-    img {
-      cursor: grab;
-    }
+img {
+  cursor: grab;
+}
 
-    img.disabled {
-      opacity: 0.4;
-      pointer-events: none;
-    }
+img.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
 
-    #turnIndicator {
-      font-size: 18px;
-      font-weight: bold;
-    }
-  </style>
+#turnIndicator {
+  font-size: 18px;
+  font-weight: bold;
+}
+</style>
+</head>
+<body>
+
+<div id="container"></div>
+<div id="trays"></div>
+<div id="turnIndicator"></div>
+
+<label>Number of Players:</label>
+<select id="numUSelect">
+  <option value="4">4</option>
+  <option value="5">5</option>
+  <option value="6" selected>6</option>
+</select>
+<button onclick="finalBoard()">Create Board</button>
+<button onclick="endTurn()">End Turn</button>
 
 <script>
-/* ---------- Constants ---------- */
 const boxSize = 50;
 const gap = 10;
 const step = boxSize + gap;
 const radius = 180;
-
-/* ---------- Game State ---------- */
 let currentPlayer = 0;
 let numPlayers = 0;
 
-/* ---------- Drag & Drop ---------- */
+const playerColors = ['green','blue','orange','purple','pink','cyan'];
+
 function dragstartHandler(ev) {
   ev.dataTransfer.setData("text/plain", ev.target.id);
 }
+function dragoverHandler(ev) { ev.preventDefault(); }
 
-function dragoverHandler(ev) {
-  ev.preventDefault();
+function isValidMove(marble,targetCell){
+  if(!marble.dataset.cell) return true; // first move from tray
+  const startCell = document.getElementById(marble.dataset.cell);
+  const dx = Math.abs(parseInt(targetCell.dataset.gridX)-parseInt(startCell.dataset.gridX));
+  const dy = Math.abs(parseInt(targetCell.dataset.gridY)-parseInt(startCell.dataset.gridY));
+  return dx <= 1 && dy <=1;
 }
 
-function dropHandler(ev) {
+function dropHandler(ev){
   ev.preventDefault();
-  if (!ev.target.classList.contains("cell")) return;
-
+  if(!ev.target.classList.contains("cell")) return;
   const cell = ev.target;
-  const marble = document.getElementById(
-    ev.dataTransfer.getData("text/plain")
-  );
+  const marble = document.getElementById(ev.dataTransfer.getData("text/plain"));
+  const marblePlayer = parseInt(marble.dataset.player);
+  const cellPlayer = parseInt(cell.dataset.player);
 
-  const marblePlayer = marble.dataset.player;
-  const cellPlayer = cell.dataset.player;
+  if(marblePlayer!==currentPlayer) return;
+  if(cell.classList.contains("home") && cellPlayer!==marblePlayer) return;
+  if(!isValidMove(marble,cell)) return;
 
-  // Turn enforcement
-  if (parseInt(marblePlayer) !== currentPlayer) return;
-
-  // Home ownership rule
-  if (cell.classList.contains("home") && cellPlayer !== marblePlayer) return;
-
-  // Occupied rule
   const occupied = document.querySelector(`img[data-cell="${cell.id}"]`);
-  if (occupied && occupied !== marble) return;
+  if(occupied && occupied!==marble) return;
 
-  if (marble.parentElement.id !== "container") {
+  if(marble.parentElement.id!=="container"){
     document.getElementById("container").appendChild(marble);
-    marble.style.position = "absolute";
+    marble.style.position="absolute";
   }
-
-  const cellRect = cell.getBoundingClientRect();
+  const rect = cell.getBoundingClientRect();
   const contRect = cell.parentElement.getBoundingClientRect();
-
-  marble.style.left = cellRect.left - contRect.left + "px";
-  marble.style.top  = cellRect.top  - contRect.top  + "px";
+  marble.style.left = rect.left-contRect.left+"px";
+  marble.style.top = rect.top-contRect.top+"px";
   marble.dataset.cell = cell.id;
 }
 
-/* ---------- Geometry ---------- */
-function rotatePoint(x, y, angleDeg) {
-  const rad = angleDeg * Math.PI / 180;
-  return {
-    x: x * Math.cos(rad) - y * Math.sin(rad),
-    y: x * Math.sin(rad) + y * Math.cos(rad)
-  };
+/* Geometry */
+function rotatePoint(x,y,angleDeg){
+  const rad = angleDeg*Math.PI/180;
+  return { x: x*Math.cos(rad)-y*Math.sin(rad), y: x*Math.sin(rad)+y*Math.cos(rad) };
 }
 
-/* ---------- Cells ---------- */
-function createCell(id, player, isHome) {
+/* Cells */
+function createCell(id,player,isHome,x,y){
   const d = document.createElement("div");
   d.id = id;
-  d.className = "cell";
-  if (isHome) d.classList.add("home");
+  d.className="cell";
   d.dataset.player = player;
-  d.addEventListener("dragover", dragoverHandler);
-  d.addEventListener("drop", dropHandler);
+  d.dataset.gridX = x;
+  d.dataset.gridY = y;
+  if(isHome){
+    d.classList.add("home");
+    d.style.backgroundColor = playerColors[player];
+  }
+  d.addEventListener("dragover",dragoverHandler);
+  d.addEventListener("drop",dropHandler);
   document.getElementById("container").appendChild(d);
 }
 
-/* ---------- Place U ---------- */
-function placeU(startIndex, angle, centerX, centerY, player) {
-  const grid = [
+/* Place U */
+function placeU(startIndex,angle,centerX,centerY,player){
+  const grid=[
     {x:0,y:2},{x:1,y:2},{x:2,y:2},
     {x:0,y:1},{x:0,y:0},
     {x:2,y:1},{x:2,y:0}
   ];
-
-  const centered = grid.map(p => ({x:p.x-1,y:p.y-1}));
-  const rotated = centered.map(p => rotatePoint(p.x,p.y,angle-90));
-
-  const maxDist = Math.max(...rotated.map(p=>Math.hypot(p.x,p.y))) * step + boxSize/2;
-  const rad = angle * Math.PI/180;
-  const baseX = centerX + Math.cos(rad)*(radius+maxDist);
-  const baseY = centerY + Math.sin(rad)*(radius+maxDist);
-
+  const centered = grid.map(p=>({x:p.x-1,y:p.y-1}));
+  const rotated = centered.map(p=>rotatePoint(p.x,p.y,angle-90));
+  const maxDist = Math.max(...rotated.map(p=>Math.hypot(p.x,p.y)))*step+boxSize/2;
+  const rad = angle*Math.PI/180;
+  const baseX = centerX+Math.cos(rad)*(radius+maxDist);
+  const baseY = centerY+Math.sin(rad)*(radius+maxDist);
   rotated.forEach((p,i)=>{
     const div = document.getElementById("div-"+(startIndex+i));
-    div.style.left = baseX + p.x*step + "px";
-    div.style.top  = baseY + p.y*step + "px";
+    div.style.left=baseX+p.x*step+"px";
+    div.style.top=baseY+p.y*step+"px";
   });
 }
 
-/* ---------- Board ---------- */
-function makeStar() {
+/* Board */
+function makeStar(){
   const c = document.getElementById("container");
-  c.innerHTML = "";
-
-  numPlayers = parseInt(document.getElementById("numUSelect").value);
-  const centerX = 400, centerY = 300;
-  const perU = 7;
-
-  for (let i=0;i<numPlayers;i++){
-    const start = i*perU;
-    for (let j=0;j<perU;j++){
-      createCell("div-"+(start+j), i, j===0);
+  c.innerHTML="";
+  numPlayers=parseInt(document.getElementById("numUSelect").value);
+  const centerX=400, centerY=300;
+  const perU=7;
+  for(let i=0;i<numPlayers;i++){
+    const start=i*perU;
+    for(let j=0;j<perU;j++){
+      createCell("div-"+(start+j),i,j===0,j,i); // grid coordinates x=i, y=j
     }
-    placeU(start, (360/numPlayers)*i, centerX, centerY, i);
+    placeU(start,(360/numPlayers)*i,centerX,centerY,i);
   }
 }
 
-/* ---------- Marbles ---------- */
-function makeMarble(id, src, player) {
-  const img = document.createElement("img");
-  img.id = id;
-  img.src = src;
-  img.width = 50;
-  img.height = 60;
-  img.draggable = true;
-  img.style.position = "relative";
-  img.dataset.player = player;
-  img.dataset.cell = "";
-  img.addEventListener("dragstart", dragstartHandler);
+/* Marbles */
+function makeMarble(id,src,player){
+  const img=document.createElement("img");
+  img.id=id;
+  img.src=src;
+  img.width=50;
+  img.height=60;
+  img.draggable=true;
+  img.style.position="relative";
+  img.dataset.player=player;
+  img.dataset.cell="";
+  img.addEventListener("dragstart",dragstartHandler);
   document.getElementById("tray-"+player).appendChild(img);
 }
 
-/* ---------- Trays ---------- */
-function makeTrays() {
-  const area = document.getElementById("trays");
-  area.innerHTML = "";
-
-  for (let p=0;p<numPlayers;p++){
-    const t = document.createElement("div");
-    t.className = "tray";
-    t.id = "tray-"+p;
-    t.innerHTML = `<div class="trayTitle">Player ${p+1}</div>`;
+/* Trays */
+function makeTrays(){
+  const area=document.getElementById("trays");
+  area.innerHTML="";
+  for(let p=0;p<numPlayers;p++){
+    const t=document.createElement("div");
+    t.className="tray";
+    t.id="tray-"+p;
+    t.innerHTML=`<div class="trayTitle">Player ${p+1}</div>`;
     area.appendChild(t);
-
-    for (let m=0;m<4;m++){
-      makeMarble(`marble-${p}-${m}`, `marble ${p+1}.png`, p);
+    for(let m=0;m<4;m++){
+      makeMarble(`marble-${p}-${m}`,`marble ${p+1}.png`,p);
     }
   }
 }
 
-/* ---------- Turn Control ---------- */
-function updateTurnUI() {
-  document.getElementById("turnIndicator").textContent =
-    `Current Turn: Player ${currentPlayer + 1}`;
-
+/* Turns */
+function updateTurnUI(){
+  document.getElementById("turnIndicator").textContent = `Current Turn: Player ${currentPlayer+1}`;
   document.querySelectorAll("img").forEach(img=>{
-    img.classList.toggle(
-      "disabled",
-      parseInt(img.dataset.player) !== currentPlayer
-    );
+    img.classList.toggle("disabled",parseInt(img.dataset.player)!==currentPlayer);
   });
 }
-
-function endTurn() {
-  currentPlayer = (currentPlayer + 1) % numPlayers;
+function endTurn(){
+  currentPlayer=(currentPlayer+1)%numPlayers;
   updateTurnUI();
 }
 
-/* ---------- Start ---------- */
-function finalBoard() {
-  currentPlayer = 0;
+/* Start */
+function finalBoard(){
+  currentPlayer=0;
   makeStar();
   makeTrays();
   updateTurnUI();
 }
 </script>
-</head>
-
-<body>
-
-  <div id="container"></div>
-
-  <div id="trays"></div>
-
-  <div id="turnIndicator"></div>
-
-  <label>Number of Players:</label>
-  <select id="numUSelect">
-    <option value="4">4</option>
-    <option value="5">5</option>
-    <option value="6" selected>6</option>
-  </select>
-
-  <button onclick="finalBoard()">Create Board</button>
-  <button onclick="endTurn()">End Turn</button>
 
 </body>
 </html>
-
-
