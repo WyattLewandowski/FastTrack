@@ -99,7 +99,7 @@ function placeU(startIndex, angleDeg, centerX, centerY) {
   const grid = [
     { x: 0, y: 2 }, { x: 1, y: 2 }, { x: 2, y: 2 },
     { x: 0, y: 1 },
-    { x: 0, y: 0 }, // <-- bottom-left of U
+    { x: 0, y: 0 }, // <-- top-left of U
     { x: 2, y: 1 }, { x: 2, y: 0 }
   ];
 
@@ -127,7 +127,7 @@ function placeU(startIndex, angleDeg, centerX, centerY) {
     div.style.top  = baseY + p.y * step + "px";
 
     // ✅ color the bottom-left cell green
-    if (grid[i].x === 0 && grid[i].y === 0) {
+    if (grid[i].x === 2 && grid[i].y === 0) {
       div.classList.add("green");
     }
   });
