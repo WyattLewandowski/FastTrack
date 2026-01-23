@@ -231,39 +231,37 @@ function endTurn() {
   currentPlayer = (currentPlayer + 1) % numPlayers;
   updateTurnUI();
 }
-  function rollDice(){
-const randomNumber = Math.floor(Math.random() * 6) + 1;
-switch (randomNumber) {
-  case 1:
-       const img = document.getElementById("DICE");
-img.src = "dice one side.png";
-    break;
-  case 2":
-   const img = document.getElementById("DICE");
-img.src = "dice two side.png";
-  case 3:
-    const img = document.getElementById("DICE");
-img.src = "dice three side.png";
-    break;
-  case 4:
-      const img = document.getElementById("DICE");
-img.src = "four side dice.png";
-    break;
-  case 5:
-      const img = document.getElementById("DICE");
-img.src = "dice five side.png";
+ 
 
-    break;
-  case 6:
-       const img = document.getElementById("DICE");
-img.src = "dice six side.png";
-    break;
-  default:
-    console.log("Not valid");
+
+  function rollDice() {
+  const img = document.getElementById("DICE");
+  const randomNumber = Math.floor(Math.random() * 6) + 1;
+
+  switch (randomNumber) {
+    case 1:
+      img.src = "dice one side.png";
+      break;
+    case 2:
+      img.src = "dice two side.png";
+      break;
+    case 3:
+      img.src = "dice three side.png";
+      break;
+    case 4:
+      img.src = "four side dice.png";
+      break;
+    case 5:
+      img.src = "dice five side.png";
+      break;
+    case 6:
+      img.src = "dice six side.png";
+      break;
+    default:
+      console.log("Not valid");
+  }
 }
 
-
-  }
 
 /* ---------- Start ---------- */
 function finalBoard() {
