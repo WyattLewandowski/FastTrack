@@ -76,12 +76,13 @@ img.disabled {
 
 <script>
 const boxSize = 50;
-const gap = 5;      // smaller gap for compact board
+const gap = 5;
 const step = boxSize + gap;
-const radius = 120; // smaller radius
+const radius = 120;
 let currentPlayer = 0;
 let numPlayers = 0;
-let neighbors = {}; // cellId -> array of neighbor cellIds
+let neighbors = {};
+let path = [];
 const playerColors = ['green','blue','orange','purple','pink','cyan'];
 
 /* ---------- Drag & Drop ---------- */
@@ -91,9 +92,15 @@ function dragstartHandler(ev) {
 function dragoverHandler(ev) { ev.preventDefault(); }
 
 function isValidMove(marble,targetCell){
-  if(!marble.dataset.cell) return true; // marble in tray
-  const allowed = neighbors[marble.dataset.cell] || [];
-  return allowed.includes(targetCell.id);
+  const marblePlayer = parseInt(marble.dataset.player);
+  if(!marble.dataset.cell) {
+    // Marble in tray can only go to home
+    return targetCell.classList.contains("home") && parseInt(targetCell.dataset.player)===marblePlayer;
+  } else {
+    // Can only move one step along path
+    const allowed = neighbors[marble.dataset.cell] || [];
+    return allowed.includes(targetCell.id);
+  }
 }
 
 function dropHandler(ev){
@@ -105,7 +112,6 @@ function dropHandler(ev){
   const cellPlayer = parseInt(cell.dataset.player);
 
   if(marblePlayer!==currentPlayer) return;
-  if(cell.classList.contains("home") && cellPlayer!==marblePlayer) return;
   if(!isValidMove(marble,cell)) return;
 
   const occupied = document.querySelector(`img[data-cell="${cell.id}"]`);
@@ -181,40 +187,33 @@ function makeStar(){
     placeU(start,(360/numPlayers)*i, centerX, centerY);
   }
 
-  buildNeighbors(numPlayers, perU);
+  buildPath(numPlayers, perU);
+  buildNeighborsFromPath();
 }
 
-/* ---------- Build neighbor map ---------- */
-function buildNeighbors(numPlayers, perU){
-  neighbors = {};
-  // Each U: 7 cells: indices 0-6
-  // Define adjacency inside a U
-  const UAdj = [
-    [1,3,4], // cell0 neighbors
-    [0,2],   // cell1
-    [1,5,6], // cell2
-    [0,4],   // cell3
-    [0,3],   // cell4
-    [2,6],   // cell5
-    [2,5]    // cell6
-  ];
-
-  // Build inside-U neighbors
-  for(let u=0; u<numPlayers; u++){
-    const base = u*perU;
-    for(let i=0;i<perU;i++){
-      neighbors["div-"+(base+i)] = UAdj[i].map(n=> "div-"+(base+n));
-    }
+/* ---------- Build linear path for movement ---------- */
+function buildPath(numPlayers, perU){
+  path = [];
+  for(let i=0;i<numPlayers;i++){
+    const base = i*perU;
+    // Order: home (0), middle cells, end cell (6)
+    path.push("div-"+(base+0));
+    path.push("div-"+(base+1));
+    path.push("div-"+(base+3));
+    path.push("div-"+(base+2));
+    path.push("div-"+(base+5));
+    path.push("div-"+(base+6));
+    path.push("div-"+(base+4)); // top-left
   }
+}
 
-  // Connect U endpoints across star
-  for(let u=0; u<numPlayers; u++){
-    const next = (u+1)%numPlayers;
-    const base = u*perU;
-    const nextBase = next*perU;
-    // connect bottom-left of U (cell0) to bottom-right of next U (cell2)
-    neighbors["div-"+(base+0)].push("div-"+(nextBase+2));
-    neighbors["div-"+(nextBase+2)].push("div-"+(base+0));
+/* ---------- Build neighbors map from path ---------- */
+function buildNeighborsFromPath(){
+  neighbors = {};
+  for(let i=0;i<path.length;i++){
+    neighbors[path[i]] = [];
+    if(i>0) neighbors[path[i]].push(path[i-1]);
+    if(i<path.length-1) neighbors[path[i]].push(path[i+1]);
   }
 }
 
