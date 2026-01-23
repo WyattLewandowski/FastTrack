@@ -44,10 +44,6 @@ body {
   border-width: 3px;
 }
 
-.cell.disabled {
-  opacity: 0.3;
-}
-
 img {
   cursor: grab;
 }
@@ -88,17 +84,19 @@ let numPlayers = 0;
 
 const playerColors = ['green','blue','orange','purple','pink','cyan'];
 
+/* ---------- Drag & Drop ---------- */
 function dragstartHandler(ev) {
   ev.dataTransfer.setData("text/plain", ev.target.id);
 }
 function dragoverHandler(ev) { ev.preventDefault(); }
 
-function isValidMove(marble,targetCell){
-  if(!marble.dataset.cell) return true; // first move from tray
+/* Check adjacency in logical board coordinates */
+function isValidMove(marble, targetCell){
+  if(!marble.dataset.cell) return true; // marble in tray
   const startCell = document.getElementById(marble.dataset.cell);
-  const dx = Math.abs(parseInt(targetCell.dataset.gridX)-parseInt(startCell.dataset.gridX));
-  const dy = Math.abs(parseInt(targetCell.dataset.gridY)-parseInt(startCell.dataset.gridY));
-  return dx <= 1 && dy <=1;
+  const dx = Math.abs(parseInt(targetCell.dataset.boardX)-parseInt(startCell.dataset.boardX));
+  const dy = Math.abs(parseInt(targetCell.dataset.boardY)-parseInt(startCell.dataset.boardY));
+  return dx <=1 && dy <=1;
 }
 
 function dropHandler(ev){
@@ -109,9 +107,9 @@ function dropHandler(ev){
   const marblePlayer = parseInt(marble.dataset.player);
   const cellPlayer = parseInt(cell.dataset.player);
 
-  if(marblePlayer!==currentPlayer) return;
-  if(cell.classList.contains("home") && cellPlayer!==marblePlayer) return;
-  if(!isValidMove(marble,cell)) return;
+  if(marblePlayer!==currentPlayer) return; // turn enforcement
+  if(cell.classList.contains("home") && cellPlayer!==marblePlayer) return; // home rule
+  if(!isValidMove(marble,cell)) return; // adjacency check
 
   const occupied = document.querySelector(`img[data-cell="${cell.id}"]`);
   if(occupied && occupied!==marble) return;
@@ -120,27 +118,28 @@ function dropHandler(ev){
     document.getElementById("container").appendChild(marble);
     marble.style.position="absolute";
   }
+
   const rect = cell.getBoundingClientRect();
   const contRect = cell.parentElement.getBoundingClientRect();
-  marble.style.left = rect.left-contRect.left+"px";
-  marble.style.top = rect.top-contRect.top+"px";
+  marble.style.left = rect.left - contRect.left + "px";
+  marble.style.top  = rect.top  - contRect.top + "px";
   marble.dataset.cell = cell.id;
 }
 
-/* Geometry */
+/* Geometry rotation */
 function rotatePoint(x,y,angleDeg){
   const rad = angleDeg*Math.PI/180;
-  return { x: x*Math.cos(rad)-y*Math.sin(rad), y: x*Math.sin(rad)+y*Math.cos(rad) };
+  return { x:x*Math.cos(rad)-y*Math.sin(rad), y:x*Math.sin(rad)+y*Math.cos(rad) };
 }
 
-/* Cells */
-function createCell(id,player,isHome,x,y){
+/* Create cell with logical coordinates */
+function createCell(id,player,isHome,boardX,boardY){
   const d = document.createElement("div");
   d.id = id;
   d.className="cell";
   d.dataset.player = player;
-  d.dataset.gridX = x;
-  d.dataset.gridY = y;
+  d.dataset.boardX = boardX;
+  d.dataset.boardY = boardY;
   if(isHome){
     d.classList.add("home");
     d.style.backgroundColor = playerColors[player];
@@ -150,7 +149,7 @@ function createCell(id,player,isHome,x,y){
   document.getElementById("container").appendChild(d);
 }
 
-/* Place U */
+/* Place U on board */
 function placeU(startIndex,angle,centerX,centerY,player){
   const grid=[
     {x:0,y:2},{x:1,y:2},{x:2,y:2},
@@ -159,79 +158,82 @@ function placeU(startIndex,angle,centerX,centerY,player){
   ];
   const centered = grid.map(p=>({x:p.x-1,y:p.y-1}));
   const rotated = centered.map(p=>rotatePoint(p.x,p.y,angle-90));
-  const maxDist = Math.max(...rotated.map(p=>Math.hypot(p.x,p.y)))*step+boxSize/2;
+  const maxDist = Math.max(...rotated.map(p=>Math.hypot(p.x,p.y)))*step + boxSize/2;
   const rad = angle*Math.PI/180;
-  const baseX = centerX+Math.cos(rad)*(radius+maxDist);
-  const baseY = centerY+Math.sin(rad)*(radius+maxDist);
+  const baseX = centerX + Math.cos(rad)*(radius+maxDist);
+  const baseY = centerY + Math.sin(rad)*(radius+maxDist);
   rotated.forEach((p,i)=>{
     const div = document.getElementById("div-"+(startIndex+i));
-    div.style.left=baseX+p.x*step+"px";
-    div.style.top=baseY+p.y*step+"px";
+    div.style.left = baseX + p.x*step + "px";
+    div.style.top  = baseY + p.y*step + "px";
+    // store logical coordinates for adjacency
+    div.dataset.boardX = grid[i].x;
+    div.dataset.boardY = grid[i].y;
   });
 }
 
-/* Board */
+/* Build board */
 function makeStar(){
   const c = document.getElementById("container");
-  c.innerHTML="";
-  numPlayers=parseInt(document.getElementById("numUSelect").value);
-  const centerX=400, centerY=300;
-  const perU=7;
+  c.innerHTML = "";
+  numPlayers = parseInt(document.getElementById("numUSelect").value);
+  const centerX = 400, centerY = 300;
+  const perU = 7;
   for(let i=0;i<numPlayers;i++){
-    const start=i*perU;
+    const start = i*perU;
     for(let j=0;j<perU;j++){
-      createCell("div-"+(start+j),i,j===0,j,i); // grid coordinates x=i, y=j
+      createCell("div-"+(start+j), i, j===0, j, i); // logical grid coords
     }
-    placeU(start,(360/numPlayers)*i,centerX,centerY,i);
+    placeU(start, (360/numPlayers)*i, centerX, centerY, i);
   }
 }
 
-/* Marbles */
+/* Create marble */
 function makeMarble(id,src,player){
-  const img=document.createElement("img");
-  img.id=id;
-  img.src=src;
-  img.width=50;
-  img.height=60;
-  img.draggable=true;
-  img.style.position="relative";
-  img.dataset.player=player;
-  img.dataset.cell="";
-  img.addEventListener("dragstart",dragstartHandler);
+  const img = document.createElement("img");
+  img.id = id;
+  img.src = src;
+  img.width = 50;
+  img.height = 60;
+  img.draggable = true;
+  img.style.position = "relative";
+  img.dataset.player = player;
+  img.dataset.cell = "";
+  img.addEventListener("dragstart", dragstartHandler);
   document.getElementById("tray-"+player).appendChild(img);
 }
 
-/* Trays */
+/* Create trays */
 function makeTrays(){
-  const area=document.getElementById("trays");
-  area.innerHTML="";
+  const area = document.getElementById("trays");
+  area.innerHTML = "";
   for(let p=0;p<numPlayers;p++){
-    const t=document.createElement("div");
-    t.className="tray";
-    t.id="tray-"+p;
-    t.innerHTML=`<div class="trayTitle">Player ${p+1}</div>`;
+    const t = document.createElement("div");
+    t.className = "tray";
+    t.id = "tray-"+p;
+    t.innerHTML = `<div class="trayTitle">Player ${p+1}</div>`;
     area.appendChild(t);
     for(let m=0;m<4;m++){
-      makeMarble(`marble-${p}-${m}`,`marble ${p+1}.png`,p);
+      makeMarble(`marble-${p}-${m}`, `marble ${p+1}.png`, p);
     }
   }
 }
 
-/* Turns */
+/* Turn management */
 function updateTurnUI(){
   document.getElementById("turnIndicator").textContent = `Current Turn: Player ${currentPlayer+1}`;
   document.querySelectorAll("img").forEach(img=>{
-    img.classList.toggle("disabled",parseInt(img.dataset.player)!==currentPlayer);
+    img.classList.toggle("disabled", parseInt(img.dataset.player)!==currentPlayer);
   });
 }
 function endTurn(){
-  currentPlayer=(currentPlayer+1)%numPlayers;
+  currentPlayer = (currentPlayer+1)%numPlayers;
   updateTurnUI();
 }
 
 /* Start */
 function finalBoard(){
-  currentPlayer=0;
+  currentPlayer = 0;
   makeStar();
   makeTrays();
   updateTurnUI();
