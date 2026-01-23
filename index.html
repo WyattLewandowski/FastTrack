@@ -78,10 +78,10 @@ img.disabled {
 const boxSize = 50;
 const gap = 5;      // smaller gap for compact board
 const step = boxSize + gap;
-const radius = 120; // smaller radius for tighter star
+const radius = 120; // smaller radius
 let currentPlayer = 0;
 let numPlayers = 0;
-let neighbors = {}; // map cellId => array of neighboring cellIds
+let neighbors = {}; // cellId -> array of neighbor cellIds
 const playerColors = ['green','blue','orange','purple','pink','cyan'];
 
 /* ---------- Drag & Drop ---------- */
@@ -104,9 +104,9 @@ function dropHandler(ev){
   const marblePlayer = parseInt(marble.dataset.player);
   const cellPlayer = parseInt(cell.dataset.player);
 
-  if(marblePlayer!==currentPlayer) return; // turn enforcement
-  if(cell.classList.contains("home") && cellPlayer!==marblePlayer) return; // home rule
-  if(!isValidMove(marble,cell)) return; // adjacency check
+  if(marblePlayer!==currentPlayer) return;
+  if(cell.classList.contains("home") && cellPlayer!==marblePlayer) return;
+  if(!isValidMove(marble,cell)) return;
 
   const occupied = document.querySelector(`img[data-cell="${cell.id}"]`);
   if(occupied && occupied!==marble) return;
@@ -123,13 +123,13 @@ function dropHandler(ev){
   marble.dataset.cell = cell.id;
 }
 
-/* Geometry rotation */
+/* ---------- Geometry rotation ---------- */
 function rotatePoint(x,y,angleDeg){
   const rad = angleDeg*Math.PI/180;
   return { x:x*Math.cos(rad)-y*Math.sin(rad), y:x*Math.sin(rad)+y*Math.cos(rad) };
 }
 
-/* Create cell */
+/* ---------- Create cell ---------- */
 function createCell(id,player,isHome){
   const d = document.createElement("div");
   d.id = id;
@@ -144,7 +144,7 @@ function createCell(id,player,isHome){
   document.getElementById("container").appendChild(d);
 }
 
-/* Place U */
+/* ---------- Place U ---------- */
 function placeU(startIndex,angle,centerX,centerY){
   const grid=[
     {x:0,y:2},{x:1,y:2},{x:2,y:2},
@@ -161,19 +161,18 @@ function placeU(startIndex,angle,centerX,centerY){
     const div = document.getElementById("div-"+(startIndex+i));
     div.style.left = baseX + p.x*step + "px";
     div.style.top  = baseY + p.y*step + "px";
-    // store absolute position for neighbor calculation
-    div.dataset.posX = baseX + p.x*step;
-    div.dataset.posY = baseY + p.y*step;
   });
 }
 
-/* Build star board */
+/* ---------- Build star board ---------- */
 function makeStar(){
   const c = document.getElementById("container");
   c.innerHTML = "";
   numPlayers = parseInt(document.getElementById("numUSelect").value);
   const centerX = 400, centerY = 300;
   const perU = 7;
+
+  // Create cells
   for(let i=0;i<numPlayers;i++){
     const start = i*perU;
     for(let j=0;j<perU;j++){
@@ -181,26 +180,42 @@ function makeStar(){
     }
     placeU(start,(360/numPlayers)*i, centerX, centerY);
   }
-  computeNeighbors();
+
+  buildNeighbors(numPlayers, perU);
 }
 
-/* ---------- Compute neighbors for adjacency ---------- */
-function computeNeighbors(){
+/* ---------- Build neighbor map ---------- */
+function buildNeighbors(numPlayers, perU){
   neighbors = {};
-  const allCells = document.querySelectorAll(".cell");
-  const threshold = step*1.1; // allow slight overlap tolerance
-  allCells.forEach(c1=>{
-    neighbors[c1.id] = [];
-    const x1 = parseFloat(c1.dataset.posX);
-    const y1 = parseFloat(c1.dataset.posY);
-    allCells.forEach(c2=>{
-      if(c1===c2) return;
-      const x2 = parseFloat(c2.dataset.posX);
-      const y2 = parseFloat(c2.dataset.posY);
-      const dist = Math.hypot(x2-x1, y2-y1);
-      if(dist <= threshold) neighbors[c1.id].push(c2.id);
-    });
-  });
+  // Each U: 7 cells: indices 0-6
+  // Define adjacency inside a U
+  const UAdj = [
+    [1,3,4], // cell0 neighbors
+    [0,2],   // cell1
+    [1,5,6], // cell2
+    [0,4],   // cell3
+    [0,3],   // cell4
+    [2,6],   // cell5
+    [2,5]    // cell6
+  ];
+
+  // Build inside-U neighbors
+  for(let u=0; u<numPlayers; u++){
+    const base = u*perU;
+    for(let i=0;i<perU;i++){
+      neighbors["div-"+(base+i)] = UAdj[i].map(n=> "div-"+(base+n));
+    }
+  }
+
+  // Connect U endpoints across star
+  for(let u=0; u<numPlayers; u++){
+    const next = (u+1)%numPlayers;
+    const base = u*perU;
+    const nextBase = next*perU;
+    // connect bottom-left of U (cell0) to bottom-right of next U (cell2)
+    neighbors["div-"+(base+0)].push("div-"+(nextBase+2));
+    neighbors["div-"+(nextBase+2)].push("div-"+(base+0));
+  }
 }
 
 /* ---------- Marbles ---------- */
