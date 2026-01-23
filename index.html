@@ -155,7 +155,7 @@ function placeU(startIndex, angle, centerX, centerY, player) {
 ];
 
   const centered = grid.map(p => ({x:p.x-1,y:p.y-1}));
-  const rotated = centered.map(p => rotatePoint(p.x,p.y,angle-90));
+  const rotated = centered.map(p => rotatePoint(p.x,p.y,angle+90));
 
   const maxDist = Math.max(...rotated.map(p=>Math.hypot(p.x,p.y))) * step + boxSize/2;
   const rad = angle * Math.PI/180;
