@@ -65,17 +65,17 @@
   </style>
 
 <script>
-/* ---------- Constants ---------- */
+//global variables
 const boxSize = 50;
 const gap = 10;
 const step = boxSize + gap;
 const radius = 120;
 
-/* ---------- Game State ---------- */
+// player vars
 let currentPlayer = 0;
 let numPlayers = 0;
 
-/* ---------- Drag & Drop ---------- */
+//drag and drop stuff
 function dragstartHandler(ev) {
   ev.dataTransfer.setData("text/plain", ev.target.id);
 }
@@ -92,8 +92,9 @@ function dropHandler(ev) {
   const marble = document.getElementById(
     ev.dataTransfer.getData("text/plain")
   );
-
+//whos marbles are whos
   const marblePlayer = marble.dataset.player;
+  //whos homespaces are whos
   const cellPlayer = cell.dataset.player;
 
   // Turn enforcement
@@ -119,7 +120,7 @@ function dropHandler(ev) {
   marble.dataset.cell = cell.id;
 }
 
-/* ---------- Geometry ---------- */
+//rotating U's for star
 function rotatePoint(x, y, angleDeg) {
   const rad = angleDeg * Math.PI / 180;
   return {
@@ -128,7 +129,7 @@ function rotatePoint(x, y, angleDeg) {
   };
 }
 
-/* ---------- Cells ---------- */
+//makeing board spaces/cells
 function createCell(id, player, isHome) {
   const d = document.createElement("div");
   d.id = id;
@@ -140,7 +141,7 @@ function createCell(id, player, isHome) {
   document.getElementById("container").appendChild(d);
 }
 
-/* ---------- Place U ---------- */
+//making cells and forming them into the arms/u's
 function placeU(startIndex, angle, centerX, centerY, player) {
   const grid = [
     {x:0,y:2},{x:1,y:2},{x:2,y:2},
@@ -163,7 +164,7 @@ function placeU(startIndex, angle, centerX, centerY, player) {
   });
 }
 
-/* ---------- Board ---------- */
+// makes the board/star
 function makeStar() {
   const c = document.getElementById("container");
   c.innerHTML = "";
@@ -181,7 +182,7 @@ function makeStar() {
   }
 }
 
-/* ---------- Marbles ---------- */
+//makes the marbles/
 function makeMarble(id, src, player) {
   const img = document.createElement("img");
   img.id = id;
@@ -196,7 +197,7 @@ function makeMarble(id, src, player) {
   document.getElementById("tray-"+player).appendChild(img);
 }
 
-/* ---------- Trays ---------- */
+//makes where the marbles start from
 function makeTrays() {
   const area = document.getElementById("trays");
   area.innerHTML = "";
@@ -214,7 +215,7 @@ function makeTrays() {
   }
 }
 
-/* ---------- Turn Control ---------- */
+// controls whose turn it is and makes it so you can only move youre own marbles.
 function updateTurnUI() {
   document.getElementById("turnIndicator").textContent =
     `Current Turn: Player ${currentPlayer + 1}`;
@@ -226,14 +227,14 @@ function updateTurnUI() {
     );
   });
 }
-
+// swaps which plaeyer it is.
 function endTurn() {
   currentPlayer = (currentPlayer + 1) % numPlayers;
   updateTurnUI();
 }
  
 
-
+// rolls the dice
   function rollDice() {
   const img = document.getElementById("DICE");
   const randomNumber = Math.floor(Math.random() * 6) + 1;
@@ -263,7 +264,7 @@ function endTurn() {
 }
 
 
-/* ---------- Start ---------- */
+// ran when you click the button, makes everything for the game
 function finalBoard() {
   currentPlayer = 0;
   makeStar();
