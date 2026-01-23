@@ -231,6 +231,39 @@ function endTurn() {
   currentPlayer = (currentPlayer + 1) % numPlayers;
   updateTurnUI();
 }
+  function rollDice(){
+const randomNumber = Math.floor(Math.random() * 6) + 1;
+switch (randomNumber) {
+  case 1:
+       const img = document.getElementById("DICE");
+img.src = "dice one side.png";
+    break;
+  case 2":
+   const img = document.getElementById("DICE");
+img.src = "dice two side.png";
+  case 3:
+    const img = document.getElementById("DICE");
+img.src = "dice three side.png";
+    break;
+  case 4:
+      const img = document.getElementById("DICE");
+img.src = "four side dice.png";
+    break;
+  case 5:
+      const img = document.getElementById("DICE");
+img.src = "dice five side.png";
+
+    break;
+  case 6:
+       const img = document.getElementById("DICE");
+img.src = "dice six side.png";
+    break;
+  default:
+    console.log("Not valid");
+}
+
+
+  }
 
 /* ---------- Start ---------- */
 function finalBoard() {
@@ -239,6 +272,8 @@ function finalBoard() {
   makeTrays();
   updateTurnUI();
 }
+
+
 </script>
 </head>
 
@@ -256,9 +291,10 @@ function finalBoard() {
     <option value="5">5</option>
     <option value="6" selected>6</option>
   </select>
-
+<button onclick="rollDice()">Roll Dice</button>
   <button onclick="finalBoard()">Create Board</button>
   <button onclick="endTurn()">End Turn</button>
+  <img src="dice one side.png" alt="DICE" width="300" height="200">
 
 </body>
 </html>
