@@ -76,12 +76,12 @@ img.disabled {
 
 <script>
 const boxSize = 50;
-const gap = 5;    
+const gap = 5;      // smaller gap for compact board
 const step = boxSize + gap;
-const radius = 120;  
+const radius = 120; // smaller radius for tighter star
 let currentPlayer = 0;
 let numPlayers = 0;
-
+let neighbors = {}; // map cellId => array of neighboring cellIds
 const playerColors = ['green','blue','orange','purple','pink','cyan'];
 
 /* ---------- Drag & Drop ---------- */
@@ -90,13 +90,10 @@ function dragstartHandler(ev) {
 }
 function dragoverHandler(ev) { ev.preventDefault(); }
 
-/* Check adjacency in logical board coordinates */
-function isValidMove(marble, targetCell){
+function isValidMove(marble,targetCell){
   if(!marble.dataset.cell) return true; // marble in tray
-  const startCell = document.getElementById(marble.dataset.cell);
-  const dx = Math.abs(parseInt(targetCell.dataset.boardX)-parseInt(startCell.dataset.boardX));
-  const dy = Math.abs(parseInt(targetCell.dataset.boardY)-parseInt(startCell.dataset.boardY));
-  return dx <=1 && dy <=1;
+  const allowed = neighbors[marble.dataset.cell] || [];
+  return allowed.includes(targetCell.id);
 }
 
 function dropHandler(ev){
@@ -132,14 +129,12 @@ function rotatePoint(x,y,angleDeg){
   return { x:x*Math.cos(rad)-y*Math.sin(rad), y:x*Math.sin(rad)+y*Math.cos(rad) };
 }
 
-/* Create cell with logical coordinates */
-function createCell(id,player,isHome,boardX,boardY){
+/* Create cell */
+function createCell(id,player,isHome){
   const d = document.createElement("div");
   d.id = id;
   d.className="cell";
   d.dataset.player = player;
-  d.dataset.boardX = boardX;
-  d.dataset.boardY = boardY;
   if(isHome){
     d.classList.add("home");
     d.style.backgroundColor = playerColors[player];
@@ -149,8 +144,8 @@ function createCell(id,player,isHome,boardX,boardY){
   document.getElementById("container").appendChild(d);
 }
 
-/* Place U on board */
-function placeU(startIndex,angle,centerX,centerY,player){
+/* Place U */
+function placeU(startIndex,angle,centerX,centerY){
   const grid=[
     {x:0,y:2},{x:1,y:2},{x:2,y:2},
     {x:0,y:1},{x:0,y:0},
@@ -166,13 +161,13 @@ function placeU(startIndex,angle,centerX,centerY,player){
     const div = document.getElementById("div-"+(startIndex+i));
     div.style.left = baseX + p.x*step + "px";
     div.style.top  = baseY + p.y*step + "px";
-    // store logical coordinates for adjacency
-    div.dataset.boardX = grid[i].x;
-    div.dataset.boardY = grid[i].y;
+    // store absolute position for neighbor calculation
+    div.dataset.posX = baseX + p.x*step;
+    div.dataset.posY = baseY + p.y*step;
   });
 }
 
-/* Build board */
+/* Build star board */
 function makeStar(){
   const c = document.getElementById("container");
   c.innerHTML = "";
@@ -182,13 +177,33 @@ function makeStar(){
   for(let i=0;i<numPlayers;i++){
     const start = i*perU;
     for(let j=0;j<perU;j++){
-      createCell("div-"+(start+j), i, j===0, j, i); // logical grid coords
+      createCell("div-"+(start+j), i, j===0);
     }
-    placeU(start, (360/numPlayers)*i, centerX, centerY, i);
+    placeU(start,(360/numPlayers)*i, centerX, centerY);
   }
+  computeNeighbors();
 }
 
-/* Create marble */
+/* ---------- Compute neighbors for adjacency ---------- */
+function computeNeighbors(){
+  neighbors = {};
+  const allCells = document.querySelectorAll(".cell");
+  const threshold = step*1.1; // allow slight overlap tolerance
+  allCells.forEach(c1=>{
+    neighbors[c1.id] = [];
+    const x1 = parseFloat(c1.dataset.posX);
+    const y1 = parseFloat(c1.dataset.posY);
+    allCells.forEach(c2=>{
+      if(c1===c2) return;
+      const x2 = parseFloat(c2.dataset.posX);
+      const y2 = parseFloat(c2.dataset.posY);
+      const dist = Math.hypot(x2-x1, y2-y1);
+      if(dist <= threshold) neighbors[c1.id].push(c2.id);
+    });
+  });
+}
+
+/* ---------- Marbles ---------- */
 function makeMarble(id,src,player){
   const img = document.createElement("img");
   img.id = id;
@@ -203,7 +218,7 @@ function makeMarble(id,src,player){
   document.getElementById("tray-"+player).appendChild(img);
 }
 
-/* Create trays */
+/* ---------- Trays ---------- */
 function makeTrays(){
   const area = document.getElementById("trays");
   area.innerHTML = "";
@@ -219,7 +234,7 @@ function makeTrays(){
   }
 }
 
-/* Turn management */
+/* ---------- Turn management ---------- */
 function updateTurnUI(){
   document.getElementById("turnIndicator").textContent = `Current Turn: Player ${currentPlayer+1}`;
   document.querySelectorAll("img").forEach(img=>{
@@ -231,7 +246,7 @@ function endTurn(){
   updateTurnUI();
 }
 
-/* Start */
+/* ---------- Initialize board ---------- */
 function finalBoard(){
   currentPlayer = 0;
   makeStar();
