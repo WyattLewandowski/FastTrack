@@ -143,19 +143,14 @@ function createCell(id, player, isHome) {
 
 //making cells and forming them into the arms/u's
 function placeU(startIndex, angle, centerX, centerY, player) {
- const grid = [
-  // left vertical (5)
-  {x:0,y:4},{x:0,y:3},{x:0,y:2},{x:0,y:1},{x:0,y:0},
-
-  // bottom (4)
-  {x:1,y:0},{x:2,y:0},{x:3,y:0},{x:4,y:0},
-
-  // right vertical (5)
-  {x:4,y:1},{x:4,y:2},{x:4,y:3},{x:4,y:4}
-];
+  const grid = [
+    {x:0,y:2},{x:1,y:2},{x:2,y:2},
+    {x:0,y:1},{x:0,y:0},
+    {x:2,y:1},{x:2,y:0}
+  ];
 
   const centered = grid.map(p => ({x:p.x-1,y:p.y-1}));
-  const rotated = centered.map(p => rotatePoint(p.x,p.y,angle+90));
+  const rotated = centered.map(p => rotatePoint(p.x,p.y,angle-90));
 
   const maxDist = Math.max(...rotated.map(p=>Math.hypot(p.x,p.y))) * step + boxSize/2;
   const rad = angle * Math.PI/180;
@@ -176,7 +171,7 @@ function makeStar() {
 
   numPlayers = parseInt(document.getElementById("numUSelect").value);
   const centerX = 400, centerY = 300;
-  const perU = 14;
+  const perU = 7;
 
   for (let i=0;i<numPlayers;i++){
     const start = i*perU;
