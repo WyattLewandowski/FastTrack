@@ -44,21 +44,29 @@ function dragstartHandler(ev) {
 function dragoverHandler(ev) {
   ev.preventDefault();
 }
-
 function dropHandler(ev) {
   ev.preventDefault();
 
   if (!ev.target.classList.contains("cell")) return;
 
-  const id = ev.dataTransfer.getData("text/plain");
-  const marble = document.getElementById(id);
   const cell = ev.target;
+  const marbleId = ev.dataTransfer.getData("text/plain");
+  const marble = document.getElementById(marbleId);
+
+  // ❌ If cell already has a marble, block drop
+  const occupied = document.querySelector(
+    `img[data-cell="${cell.id}"]`
+  );
+  if (occupied && occupied !== marble) return;
 
   const cellRect = cell.getBoundingClientRect();
   const containerRect = cell.parentElement.getBoundingClientRect();
 
   marble.style.left = cellRect.left - containerRect.left + "px";
   marble.style.top  = cellRect.top  - containerRect.top  + "px";
+
+  // 🧠 Update marble's occupied cell
+  marble.dataset.cell = cell.id;
 }
 
 /* ---------- Geometry ---------- */
@@ -138,6 +146,8 @@ function makeMarble(id, src, x, y) {
   img.style.position = "absolute";
   img.style.left = x + "px";
   img.style.top  = y + "px";
+
+  img.dataset.cell = ""; // <-- track occupied cell
 
   img.addEventListener("dragstart", dragstartHandler);
 
