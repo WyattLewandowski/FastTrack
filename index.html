@@ -29,98 +29,146 @@
     }
   </style>
 
-  <script>
-    const boxSize = 50;
-    const gap = 10;
-    const step = boxSize + gap;
-    const radius = 180; // fixed radius of the star
+ <script>
+/* ---------- Constants ---------- */
+const boxSize = 50;
+const gap = 10;
+const step = boxSize + gap;
+const radius = 180;
 
-    /* ---------- Drag & Drop ---------- */
-    function dragstartHandler(ev) {
-      ev.dataTransfer.setData("text", ev.target.id);
+/* ---------- Drag & Drop ---------- */
+function dragstartHandler(ev) {
+  ev.dataTransfer.setData("text/plain", ev.target.id);
+}
+
+function dragoverHandler(ev) {
+  ev.preventDefault();
+}
+
+function dropHandler(ev) {
+  ev.preventDefault();
+
+  if (!ev.target.classList.contains("cell")) return;
+
+  const id = ev.dataTransfer.getData("text/plain");
+  const marble = document.getElementById(id);
+  const cell = ev.target;
+
+  const cellRect = cell.getBoundingClientRect();
+  const containerRect = cell.parentElement.getBoundingClientRect();
+
+  marble.style.left = cellRect.left - containerRect.left + "px";
+  marble.style.top  = cellRect.top  - containerRect.top  + "px";
+}
+
+/* ---------- Geometry ---------- */
+function rotatePoint(x, y, angleDeg) {
+  const rad = angleDeg * Math.PI / 180;
+  return {
+    x: x * Math.cos(rad) - y * Math.sin(rad),
+    y: x * Math.sin(rad) + y * Math.cos(rad)
+  };
+}
+
+/* ---------- Create Cell ---------- */
+function createCell(id) {
+  const d = document.createElement("div");
+  d.id = id;
+  d.className = "cell";
+  d.addEventListener("dragover", dragoverHandler);
+  d.addEventListener("drop", dropHandler);
+  document.getElementById("container").appendChild(d);
+}
+
+/* ---------- Place a U ---------- */
+function placeU(startIndex, angleDeg, centerX, centerY) {
+  const grid = [
+    { x: 0, y: 2 }, { x: 1, y: 2 }, { x: 2, y: 2 },
+    { x: 0, y: 1 }, { x: 0, y: 0 },
+    { x: 2, y: 1 }, { x: 2, y: 0 }
+  ];
+
+  const centered = grid.map(p => ({ x: p.x - 1, y: p.y - 1 }));
+  const rotated = centered.map(p => rotatePoint(p.x, p.y, angleDeg - 90));
+
+  const maxDist = Math.max(...rotated.map(p => Math.hypot(p.x, p.y))) * step + boxSize/2;
+
+  const rad = angleDeg * Math.PI / 180;
+  const baseX = centerX + Math.cos(rad) * (radius + maxDist);
+  const baseY = centerY + Math.sin(rad) * (radius + maxDist);
+
+  rotated.forEach((p, i) => {
+    const div = document.getElementById("div-" + (startIndex + i));
+    div.style.left = baseX + p.x * step + "px";
+    div.style.top  = baseY + p.y * step + "px";
+  });
+}
+
+/* ---------- Make Star ---------- */
+function makeStar() {
+  const container = document.getElementById("container");
+  container.innerHTML = "";
+
+  const numU = parseInt(document.getElementById("numUSelect").value);
+  const centerX = 400;
+  const centerY = 300;
+  const totalPerU = 7;
+
+  for (let i = 0; i < numU; i++) {
+    const startIndex = i * totalPerU;
+
+    for (let j = 0; j < totalPerU; j++) {
+      createCell("div-" + (startIndex + j));
     }
 
-    function dragoverHandler(ev) {
-      ev.preventDefault();
-    }
+    placeU(startIndex, (360 / numU) * i, centerX, centerY);
+  }
+}
 
-    function dropHandler(ev) {
-      ev.preventDefault();
-      const data = ev.dataTransfer.getData("text");
-      ev.target.appendChild(document.getElementById(data));
-    }
+/* ---------- Make Marble (WORKING) ---------- */
+function makeMarble(id, src, x, y) {
+  const img = document.createElement("img");
 
-    /* ---------- Geometry ---------- */
-    function rotatePoint(x, y, angleDeg) {
-      const rad = angleDeg * Math.PI / 180;
-      return {
-        x: x * Math.cos(rad) - y * Math.sin(rad),
-        y: x * Math.sin(rad) + y * Math.cos(rad)
-      };
-    }
+  img.id = id;
+  img.src = src;
+  img.width = 50;
+  img.height = 60;
+  img.draggable = true;
 
-    /* ---------- Create Cell ---------- */
-    function createCell(id) {
-      const d = document.createElement("div");
-      d.id = id;
-      d.className = "cell";
-      d.addEventListener("dragover", dragoverHandler);
-      d.addEventListener("drop", dropHandler);
-      document.getElementById("container").appendChild(d);
-    }
+  img.style.position = "absolute";
+  img.style.left = x + "px";
+  img.style.top  = y + "px";
 
-    /* ---------- Place a single U ---------- */
-    function placeU(startIndex, angleDeg, centerX, centerY) {
-      const grid = [
-        { x: 0, y: 2 }, { x: 1, y: 2 }, { x: 2, y: 2 },
-        { x: 0, y: 1 }, { x: 0, y: 0 },
-        { x: 2, y: 1 }, { x: 2, y: 0 }
-      ];
+  img.addEventListener("dragstart", dragstartHandler);
 
-      const centered = grid.map(p => ({
-        x: p.x - 1,
-        y: p.y - 1
-      }));
+  document.getElementById("container").appendChild(img);
+}
 
-      // Rotate so TOP of U faces center
-      const rotated = centered.map(p =>
-        rotatePoint(p.x, p.y, angleDeg - 90)
+/* ---------- Final Board (WORKING) ---------- */
+function finalBoard() {
+  makeStar();
+
+  const numPlayers = parseInt(document.getElementById("numUSelect").value);
+  let marbleCount = 0;
+
+  const startX = 50;
+  const startY = 520;
+  const spacing = 60;
+
+  for (let p = 0; p < numPlayers; p++) {
+    for (let m = 0; m < 4; m++) {
+      makeMarble(
+        "marble-" + marbleCount,
+        "marble " + (p + 1) + ".png",
+        startX + marbleCount * spacing,
+        startY
       );
-
-      const maxDist = Math.max(...rotated.map(p => Math.hypot(p.x, p.y))) * step + boxSize/2;
-
-      const rad = angleDeg * Math.PI / 180;
-      const baseX = centerX + Math.cos(rad) * (radius + maxDist);
-      const baseY = centerY + Math.sin(rad) * (radius + maxDist);
-
-      rotated.forEach((p, i) => {
-        const div = document.getElementById("div-" + (startIndex + i));
-        div.style.left = baseX + p.x * step + "px";
-        div.style.top  = baseY + p.y * step + "px";
-      });
+      marbleCount++;
     }
+  }
+}
+</script>
 
-    /* ---------- Make Star ---------- */
-    function makeStar() {
-      const container = document.getElementById("container");
-      container.innerHTML = ""; // clear old star
-
-      const numU = parseInt(document.getElementById("numUSelect").value);
-      const centerX = 400;
-      const centerY = 300;
-      const totalPerU = 7;
-
-      for (let i = 0; i < numU; i++) {
-        const startIndex = i * totalPerU;
-        for (let j = 0; j < totalPerU; j++) {
-          createCell("div-" + (startIndex + j));
-        }
-
-        const angle = (360 / numU) * i;
-        placeU(startIndex, angle, centerX, centerY);
-      }
-    }
-  </script>
 </head>
 
 <body>
@@ -136,9 +184,7 @@
     <option value="10">10</option>
   </select>
 
-  <button onclick="makeStar()">Create Star</button>
-
-  <p>Drag the image or squares onto the U's cells.</p>
+  <button onclick="makeStar()">Create Board</button>
   <img
     id="img1-1"
     src="marble 1.png"
